@@ -1,9 +1,13 @@
 CC = clang
-INCLUDE = include
-SRC = src
-BUILD = build
+INCLUDE = ./include
+SRC = ./src
+BUILD = ./build
 CFLAGS += -std=c17 -Wall -Werror -Wextra -pedantic -I $(INCLUDE)
-OBJS = $(patsubst $(SRC)/%.c, $(BUILD)/%.o, $(wildcard $(SRC)/*.c))
+
+SRCS = $(shell find ./src -type f -name *.c)
+HEADS = $(shell find ./include -type f -name *.h)
+OBJS = $(patsubst $(SRC)/%.c, $(BUILD)/%.o, $(SRCS))
+
 
 all: directories $(BUILD)/main
 
@@ -13,7 +17,7 @@ clang-tidy:
 directories:
 	mkdir -p $(BUILD)
 
-$(BUILD)/%.o: $(SRC)/%.c
+$(BUILD)/%.o: $(SRC)/%.c $(SRC)/%.c
 	$(CC) -c $(CFLAGS) $< -o $@
 
 $(BUILD)/main: $(OBJS)
