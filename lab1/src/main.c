@@ -49,7 +49,7 @@ static void close_pipe(half_duplex_pipe pipe) {
 static void clear_pipe_table(duplex_pipe **pipe_table, const uint16_t sz) {
     assert(sz > 0);
     for (size_t i = 0; i < sz + 1; ++i) {
-        for (size_t j = 0; j < sz; ++j) {
+        for (size_t j = 0; j < sz + 1; ++j) {
             if (i == j) { continue; }
             close_pipe(pipe_table[i][j].input_pipe);
             close_pipe(pipe_table[i][j].output_pipe);
@@ -60,7 +60,7 @@ static void clear_pipe_table(duplex_pipe **pipe_table, const uint16_t sz) {
 static void init_pipe_table(duplex_pipe **pipe_table, const uint16_t sz) {
     assert(sz > 0);
     for (uint16_t i = 0; i < sz + 1; ++i) {
-        for (size_t j = 0; j < sz; ++j) {
+        for (size_t j = 0; j < sz + 1; ++j) {
             if (i == j) { continue; }
             half_duplex_pipe input_p = {0};
             half_duplex_pipe output_p = {0};
