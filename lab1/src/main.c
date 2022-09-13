@@ -8,6 +8,8 @@
 #include "ipc.h"
 #include "common.h"
 #include "pa1.h"
+#include "node.h"
+
 
 /**
  * Duplex pipes between parent and child:
@@ -16,29 +18,6 @@
  */
 
 #define MAX_PROC_COUNT 11
-
-typedef union {
-    int fds[2];
-    struct {
-        int fd_in;
-        int fd_out;
-    };
-} half_duplex_pipe;
-
-typedef struct {
-    half_duplex_pipe input_pipe;
-    half_duplex_pipe output_pipe;
-} duplex_pipe;
-
-typedef struct {
-    int fd_in;
-    int fd_out;
-} node_interface;
-
-typedef struct {
-    local_id id;
-    node_interface adjacent[11];
-} node;
 
 
 static void close_pipe(half_duplex_pipe pipe) {
