@@ -1,6 +1,5 @@
 #ifndef LAB1_NODE_H
 #define LAB1_NODE_H
-#include "ipc.h"
 #include "context.h"
 
 typedef struct {
@@ -14,12 +13,12 @@ typedef struct {
 } adjacent_list;
 
 typedef struct {
-    local_id id;
+    uint8_t id;
     adjacent_list neighbours;
 } node;
 
 
-void node_create(node* node, local_id id, context* ctx);
+void node_create(node* node, uint8_t id, context* ctx);
 
 void node_destroy(node* node);
 

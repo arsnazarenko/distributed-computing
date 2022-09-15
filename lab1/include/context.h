@@ -14,20 +14,19 @@ typedef union {
     };
 } half_duplex_pipe;
 
+
 typedef struct {
     half_duplex_pipe input_pipe;
     half_duplex_pipe output_pipe;
 } duplex_pipe;
 
 
-struct context {
+typedef struct {
     size_t sz;
     duplex_pipe pipe_table[MAX_PROC_SIZE][MAX_PROC_SIZE];
-};
+} context;
 
-typedef struct context context;
-
-bool context_init(context *ctx, size_t sz);
+bool context_create(context *ctx, size_t sz);
 
 void context_destroy(context *ctx);
 
