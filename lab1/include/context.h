@@ -39,6 +39,6 @@ bool context_create(context *ctx, size_t sz);
 
 void context_destroy(context *ctx);
 
-void context_create_adjacent_list(context* ctx, size_t row_number, adjacent_list* adj_list);
+void context_create_adjacent_list(context *ctx, size_t row_number, adjacent_list *adj_list);
 
 #endif //LAB1_CONTEXT_H
