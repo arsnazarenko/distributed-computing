@@ -5,26 +5,10 @@
 #include <stdio.h>
 #include "context.h"
 
-
 static void close_hdp(half_duplex_pipe hdp) {
-    if (hdp.fd_in > 3) { close(hdp.fd_in); }
-    if (hdp.fd_out > 3) { close(hdp.fd_out); }
+    if (hdp.fd_read > 3) { close(hdp.fd_read); }
+    if (hdp.fd_write > 3) { close(hdp.fd_write); }
 }
-
-//void context_debug(const context* ctx) {
-//    printf("{\nsz: %zu\n", ctx->sz);
-//    for (size_t i = 0; i < MAX_PROC_SIZE; ++i) {
-//        for (size_t j = 0; j < MAX_PROC_SIZE; ++j) {
-//            printf("[%2d,%2d,%2d,%2d] ",
-//                   ctx->pipe_table[i][j].input_pipe.fd_in,
-//                   ctx->pipe_table[i][j].input_pipe.fd_out,
-//                   ctx->pipe_table[i][j].output_pipe.fd_in,
-//                   ctx->pipe_table[i][j].output_pipe.fd_out );
-//        }
-//        printf("\n");
-//    }
-//    printf("}\n");
-//}
 
 bool context_create(context *ctx, size_t n_proc) {
     assert(n_proc <= MAX_PROC_SIZE);
@@ -54,6 +38,23 @@ void context_destroy(context *ctx) {
         }
     }
 }
+
+void context_create_adjacent_list(context *ctx, size_t row_number, adjacent_list *adj_list) {
+    assert(ctx != NULL && adj_list != NULL);
+    adj_list->sz = ctx->sz;
+    for (size_t i = 0; i < ctx->sz; ++i) {
+        // copy needed fd's to communicate for each processes in system
+        adj_list->interfaces[i] = (node_interface)
+                {.fd_read = ctx->pipe_table[row_number][i].input_pipe.fd_read,
+                        .fd_write =  ctx->pipe_table[row_number][i].output_pipe.fd_write};
+        // clean copied fd's from global table to prevent them from closing in context_destroy()
+        ctx->pipe_table[row_number][i].input_pipe.fd_read = -1;
+        ctx->pipe_table[row_number][i].output_pipe.fd_write = -1;
+        ctx->pipe_table[i][row_number].output_pipe.fd_read = -1;
+        ctx->pipe_table[i][row_number].input_pipe.fd_write = -1;
+    }
+}
+
 
 
 
