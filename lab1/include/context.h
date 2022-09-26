@@ -1,9 +1,6 @@
 #ifndef LAB1_CONTEXT_H
 #define LAB1_CONTEXT_H
-
-#include <stdint.h>
-#include <stdbool.h>
-
+#include <inttypes.h>
 #define N_PROC 10
 
 typedef union {
