@@ -4,8 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define MAX_PROC_SIZE 11
-
+#define N_PROC 10
 
 typedef union {
     int fds[2];
@@ -22,7 +21,7 @@ typedef struct {
 
 typedef struct context {
     size_t sz;
-    duplex_pipe pipe_table[MAX_PROC_SIZE][MAX_PROC_SIZE];
+    duplex_pipe pipe_table[N_PROC][N_PROC];
 } context;
 
 typedef struct {
@@ -32,10 +31,10 @@ typedef struct {
 
 typedef struct {
     size_t sz;
-    node_interface interfaces[MAX_PROC_SIZE];
+    node_interface interfaces[N_PROC];
 } adjacent_list;
 
-bool context_create(context *ctx, size_t sz);
+int context_create(context *ctx, size_t proc_n);
 
 void context_destroy(context *ctx);
 
