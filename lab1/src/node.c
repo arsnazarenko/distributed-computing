@@ -13,7 +13,7 @@ void node_destroy(node *node) {
     assert(node != NULL);
     for (size_t i = 0; i < node->neighbours.sz; ++i) {
         if (i == (size_t) node->id) { continue; }
-        (node->neighbours.interfaces[i].fd_write);
+        close(node->neighbours.interfaces[i].fd_write);
         close(node->neighbours.interfaces[i].fd_read);
     }
 }
