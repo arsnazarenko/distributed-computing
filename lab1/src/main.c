@@ -1,14 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
 #include <sys/wait.h>
+#include <unistd.h>
 #include "context.h"
-#include "node.h"
 #include "ipc.h"
+#include "logger.h"
+#include "node.h"
 #include "pa1.h"
 
-#define _POSIX_C_SOURCE
 //static void context_debug(const context *ctx) {
 //    printf("Context: sz: %zu\n", ctx->sz);
 //    for (size_t i = 0; i < ctx->sz; ++i) {
@@ -47,15 +47,39 @@ void work(node *node, size_t child_proc_number) {
                      .s_local_time = 0,
                      .s_magic = MESSAGE_MAGIC
                     };
+            log_started(node->id, getpid(), getppid());
             send_multicast(node, &msg);
         } else {
             Message msg = {0};
             receive(node, writer_id, &msg);
-            msg.s_payload[msg.s_header.s_payload_len] = 0; // add null-terminator for reading payload
-            printf("Process %d (%d) received: %s\n", node->id, getpid(), msg.s_payload);
+//            msg.s_payload[msg.s_header.s_payload_len] = 0; // add null-terminator for reading payload
+//            printf("Process %d (%d) received: %s\n", node->id, getpid(), msg.s_payload);
         }
         ++writer_id;
     }
+    log_received_all_started(node->id);
+    writer_id = 1;
+    while (writer_id <= max_id) {
+        if (node->id == writer_id) {
+            Message msg = {0};
+            sprintf(msg.s_payload, log_done_fmt, node->id);
+            msg.s_header = (MessageHeader)
+                    {.s_type = DONE,
+                            .s_payload_len = strlen(msg.s_payload),
+                            .s_local_time = 0,
+                            .s_magic = MESSAGE_MAGIC
+                    };
+            log_done(node->id);
+            send_multicast(node, &msg);
+        } else {
+            Message msg = {0};
+            receive(node, writer_id, &msg);
+//            msg.s_payload[msg.s_header.s_payload_len] = 0; // add null-terminator for reading payload
+//            printf("Process %d (%d) received: %s\n", node->id, getpid(), msg.s_payload);
+        }
+        ++writer_id;
+    }
+    log_received_all_done(node->id);
 }
 
 
@@ -74,9 +98,9 @@ int main(int argc, char **argv) {
         fputs("Invalid value of option \"-p\"\n", stderr);
         return -1;
     }
+    logger_create();
     context context = {0};
     if (context_create(&context, child_proc_number + 1) != 0) {
-        context_destroy(&context);
         exit(1);
     }
     local_id max_child_id = (local_id) child_proc_number;
@@ -94,6 +118,7 @@ int main(int argc, char **argv) {
             context_destroy(&context);
             work(&node, child_proc_number);
             node_destroy(&node);
+            logger_destroy();
             exit(0);
         }
     }
@@ -109,6 +134,7 @@ int main(int argc, char **argv) {
         pid = wait(&status);
         printf("Child with pid %d exit with status %d\n", pid, status);
     }
+    logger_destroy();
     return 0;
 }
 

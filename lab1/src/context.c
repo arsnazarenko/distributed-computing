@@ -1,22 +1,6 @@
 #include <assert.h>
-#include <stddef.h>
-#include <unistd.h>
-#include <stdio.h>
 #include "context.h"
-
-
-
-static void close_fd(int fd) {
-    if (fd > 2) {
-        if (close(fd) != 0) { perror("close() failed"); }
-    }
-}
-
-static void close_pipe(half_duplex_pipe hdp) {
-    close_fd(hdp.fd_read);
-    close_fd(hdp.fd_write);
-}
-
+#include "logger.h"
 
 int context_create(context *ctx, size_t proc_n) {
     assert(proc_n <= N_PROC);
@@ -28,8 +12,12 @@ int context_create(context *ctx, size_t proc_n) {
             half_duplex_pipe output_p = {0};
             if (pipe(input_p.fds) != 0 || pipe(output_p.fds) != 0) {
                 perror("pipe() failed");
+                // if some number of pipes was opened
+                context_destroy(ctx);
                 return -1;
             }
+            log_pipe_open(input_p);
+            log_pipe_open(output_p);
             ctx->pipe_table[i][j] = (duplex_pipe) {input_p, output_p};
             ctx->pipe_table[j][i] = (duplex_pipe) {output_p, input_p};
         }

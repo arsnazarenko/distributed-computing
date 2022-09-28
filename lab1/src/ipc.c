@@ -1,14 +1,15 @@
-#include <unistd.h>
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
+#include <unistd.h>
 #include "ipc.h"
 #include "node.h"
 
 int send(void *self, local_id dst, const Message *msg) {
     const node *self_node = (node *) self;
     if (dst == self_node->id) { return -1; }
+    int len = (int) (sizeof(MessageHeader) + strlen(msg->s_payload));
     if (write(self_node->neighbours.interfaces[dst].fd_write,
-              msg, sizeof(MessageHeader) + strlen(msg->s_payload)) == -1) {
+              msg, len) != len) {
         perror("write() failed");
         return -1;
     }

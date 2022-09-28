@@ -1,8 +1,7 @@
 #include <assert.h>
-#include <unistd.h>
 #include "node.h"
 
-void node_create(node *node, int8_t id, context *ctx) {
+void node_create(node *node, local_id id, context *ctx) {
     assert(node != NULL && ctx != NULL);
     assert(id >= 0 && id < N_PROC);
     node->id = id;
