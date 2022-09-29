@@ -32,7 +32,13 @@ int receive(void *self, local_id from, Message *msg) {
     const node *self_node = (node *) self;
     if (from == self_node->id) { return -1; }
     if (read(self_node->neighbours.interfaces[from].fd_read,
-             msg, MAX_MESSAGE_LEN) == -1) {
+             msg, sizeof(MessageHeader)) != sizeof(MessageHeader)) {
+        perror("read() failed");
+        return -1;
+    }
+    int payload_len = msg->s_header.s_payload_len;
+    if (read(self_node->neighbours.interfaces[from].fd_read,
+             msg->s_payload, payload_len) != payload_len) {
         perror("read() failed");
         return -1;
     }

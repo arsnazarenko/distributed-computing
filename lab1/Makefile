@@ -5,7 +5,7 @@ BUILD_DIR = ./build
 DEFAULT_BUILD_DIR = $(BUILD_DIR)/default
 SANITIZED_BUILD_DIR = $(BUILD_DIR)/sanitized
 
-CFLAGS += -std=c17 -Wall -Werror -Wextra -pedantic -g -I $(INCLUDE)
+CFLAGS += -std=c99 -Wall -Wextra -pedantic -g -I $(INCLUDE)
 SANITIZED_CFLAGS = $(CFLAGS) -fsanitize=address,undefined,leak
 
 SRCS = $(shell find ./src -type f -name *.c)
@@ -42,6 +42,6 @@ $(DEFAULT_BUILD_DIR)/main: $(DEFAULT_OBJS)
 	$(CC) $(CFLAGS) $^ -o $@
 
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -rf $(BUILD_DIR) pipes.log events.log
 
 PHONY: clean default_dirs sanitized_dirs clang-tidy

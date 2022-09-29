@@ -90,11 +90,11 @@ int send_multicast(void * self, const Message * msg);
  *
  * @param self    Any data structure implemented by students to perform I/O
  * @param from    ID of the process to receive message from
- * @param msg     Message structure allocated by the caller
+ * @param test_msg     Message structure allocated by the caller
  *
  * @return 0 on success, any non-zero value on error
  */
-int receive(void * self, local_id from, Message * msg);
+int receive(void * self, local_id from, Message * test_msg);
 
 //------------------------------------------------------------------------------
 
