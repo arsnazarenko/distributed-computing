@@ -2,4 +2,3 @@
 build/
 .idea/
 *.log
-*.sh
