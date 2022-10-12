@@ -8,8 +8,8 @@ int context_create(context *ctx, size_t proc_n) {
     ctx->sz = proc_n;
     for (size_t i = 0; i < ctx->sz; ++i) {
         for (size_t j = i + 1; j < ctx->sz; ++j) {
-            half_duplex_pipe input_p = {0};
-            half_duplex_pipe output_p = {0};
+            half_duplex_pipe input_p;
+            half_duplex_pipe output_p;
             if (pipe(input_p.fds) != 0 || pipe(output_p.fds) != 0) {
                 perror("pipe() failed");
                 // if some number of pipes was opened
@@ -41,13 +41,13 @@ void context_create_adjacent_list(context *ctx, size_t row_number, adjacent_list
     for (size_t i = 0; i < ctx->sz; ++i) {
         // copy needed fd's to communicate for each processes in system
         adj_list->interfaces[i] = (node_interface)
-                {.fd_read = ctx->pipe_table[row_number][i].input_pipe.fd_read,
-                 .fd_write =  ctx->pipe_table[row_number][i].output_pipe.fd_write };
+                {.fd_read = ctx->pipe_table[row_number][i].input_pipe.io.fd_read,
+                 .fd_write =  ctx->pipe_table[row_number][i].output_pipe.io.fd_write };
         // clean copied fd's from global table to prevent them from closing in context_destroy()
-        ctx->pipe_table[row_number][i].input_pipe.fd_read = 0;
-        ctx->pipe_table[row_number][i].output_pipe.fd_write = 0;
-        ctx->pipe_table[i][row_number].output_pipe.fd_read = 0;
-        ctx->pipe_table[i][row_number].input_pipe.fd_write = 0;
+        ctx->pipe_table[row_number][i].input_pipe.io.fd_read = 0;
+        ctx->pipe_table[row_number][i].output_pipe.io.fd_write = 0;
+        ctx->pipe_table[i][row_number].output_pipe.io.fd_read = 0;
+        ctx->pipe_table[i][row_number].input_pipe.io.fd_write = 0;
     }
 }
 

@@ -32,7 +32,7 @@ int logger_create(void) {
     return 0;
 }
 
-void log_started(int8_t id, int pid, int ppid) {
+void log_started(local_id id, int pid, int ppid) {
     assert(events_log_file != NULL);
     printf(log_started_fmt, id, pid, ppid);
     fprintf(events_log_file, log_started_fmt, id, pid, ppid);
@@ -40,7 +40,7 @@ void log_started(int8_t id, int pid, int ppid) {
     fflush(events_log_file);
 }
 
-void log_received_all_started(int8_t id) {
+void log_received_all_started(local_id id) {
     assert(events_log_file != NULL);
     printf(log_received_all_started_fmt, id);
     fprintf(events_log_file, log_received_all_started_fmt, id);
@@ -48,7 +48,7 @@ void log_received_all_started(int8_t id) {
     fflush(events_log_file);
 }
 
-void log_done(int8_t id) {
+void log_done(local_id id) {
     assert(events_log_file != NULL);
     printf(log_done_fmt, id);
     fprintf(events_log_file, log_done_fmt, id);
@@ -56,7 +56,7 @@ void log_done(int8_t id) {
     fflush(events_log_file);
 }
 
-void log_received_all_done(int8_t id) {
+void log_received_all_done(local_id id) {
     assert(events_log_file != NULL);
     printf(log_received_all_done_fmt, id);
     fprintf(events_log_file, log_received_all_done_fmt, id);
@@ -66,6 +66,6 @@ void log_received_all_done(int8_t id) {
 
 void log_pipe_open(half_duplex_pipe pipe) {
     assert(pipes_log_file != NULL);
-    fprintf(pipes_log_file, log_pipe_open_fmt, pipe.fd_read, pipe.fd_write);
+    fprintf(pipes_log_file, log_pipe_open_fmt, pipe.io.fd_read, pipe.io.fd_write);
     fflush(pipes_log_file);
 }

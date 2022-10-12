@@ -8,6 +8,6 @@ void close_fd(int fd) {
 }
 
 void close_pipe(half_duplex_pipe hdp) {
-    close_fd(hdp.fd_read);
-    close_fd(hdp.fd_write);
+    close_fd(hdp.io.fd_read);
+    close_fd(hdp.io.fd_write);
 }

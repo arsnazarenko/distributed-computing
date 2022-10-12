@@ -4,25 +4,25 @@
 #define N_PROC 10
 #include <unistd.h>
 
-typedef union {
+typedef union half_duplex_pipe {
     int fds[2];
-    struct {
+    struct io {
         int fd_read;
         int fd_write;
-    };
+    } io;
 } half_duplex_pipe;
 
-typedef struct {
+typedef struct duplex_pipe {
     half_duplex_pipe input_pipe;
     half_duplex_pipe output_pipe;
 } duplex_pipe;
 
-typedef struct {
+typedef struct node_interface {
     int fd_read;
     int fd_write;
 } node_interface;
 
-typedef struct {
+typedef struct adjacent_list {
     size_t sz;
     node_interface interfaces[N_PROC];
 } adjacent_list;
