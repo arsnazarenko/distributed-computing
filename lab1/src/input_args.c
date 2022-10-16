@@ -1,6 +1,6 @@
 #include <getopt.h>
 #include <stdio.h>
-#include "stdlib.h"
+#include <stdlib.h>
 #include "input_args.h"
 
 static const char * const short_options = "hp:";
