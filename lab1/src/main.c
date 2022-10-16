@@ -1,9 +1,9 @@
-#include "getopt.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include "input_args.h"
 #include "context.h"
 #include "ipc.h"
 #include "logger.h"
@@ -111,74 +111,17 @@ static void phase(node *node, MessageType type) {
     }
 }
 
-static void usage(void) {
-    printf(
-            "Usage: ./main [options]\n\n"
-            "Options:\n"
-            "%-40s%s\n"
-            "%-40s%s\n",
-            "-h, --help", "Display this help text and exit",
-            "-p [N], --process-number[=N]",
-            "Required option. Define number of child processes created in the program. Value can be between 1 and 9 inclusive"
-    );
-}
-
 //fixme: parse args with getopt.h
 int main(int argc, char **argv) {
-    size_t child_proc_number = 0;
-
-    const char *short_options = "hp:";
-    const struct option long_options[] = {
-            {"help",           no_argument,       NULL, 'h'},
-            {"process-number", required_argument, NULL, 'p'},
-            {NULL, 0,                             NULL, 0}
-    };
-    if (argc < 2) {
-        usage();
-        exit(-1);
-    }
-    int rez = -1;
-    int option_index = -1;
-    while ((rez = getopt_long(argc,
-                              argv,
-                              short_options,
-                              long_options,
-                              &option_index)) != -1) {
-        switch (rez) {
-            case 'h': {
-                usage();
-                exit(0);
-            }
-            case 'p': {
-                child_proc_number = strtol(optarg, NULL, 10);
-                if (child_proc_number < 1 || child_proc_number > 9) {
-                    fprintf(stderr,
-                            "Invalid value of option -%c [--%s]\n",
-                            long_options[1].val,
-                            long_options[1].name);
-                    exit(-1);
-                }
-                break;
-            }
-            case '?':
-            default: {
-                if (argc > 1) {
-                    fputs("Try ./main --help for more information.\n", stderr);
-                } else {
-                    usage();
-                }
-                exit(-1);
-            }
-        }
-        option_index = -1;
-    }
-
+    arguments program_arg;
+    parse_arguments(argc, argv, &program_arg);
+    validate_arguments(&program_arg);
     logger_create();
     context context;
-    if (context_create(&context, child_proc_number + 1) != 0) {
+    if (context_create(&context, program_arg.child_proc_number + 1) != 0) {
         exit(1);
     }
-    local_id max_child_id = (local_id) child_proc_number;
+    local_id max_child_id = (local_id) program_arg.child_proc_number;
     for (local_id child_id = 1; child_id <= max_child_id; ++child_id) {
         int pid = fork();
         if (pid == -1) {
@@ -205,7 +148,7 @@ int main(int argc, char **argv) {
     phase(&node, DONE);
     node_destroy(&node);
     int status;
-    for (size_t i = 0; i < child_proc_number; ++i) {
+    for (size_t i = 0; i < program_arg.child_proc_number; ++i) {
         wait(&status);
     }
     logger_destroy();
