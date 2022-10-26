@@ -7,7 +7,7 @@ void close_fd(int fd) {
     }
 }
 
-void close_pipe(half_duplex_pipe hdp) {
-    close_fd(hdp.io.fd_read);
-    close_fd(hdp.io.fd_write);
+void close_pipe(int pipe[2]) {
+    close_fd(pipe[FD_READ]);
+    close_fd(pipe[FD_WRITE]);
 }

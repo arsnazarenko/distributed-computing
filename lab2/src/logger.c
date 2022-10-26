@@ -64,8 +64,8 @@ void log_received_all_done(local_id id) {
     fflush(events_log_file);
 }
 
-void log_pipe_open(half_duplex_pipe pipe) {
+void log_pipe_open(int pipe[2]) {
     assert(pipes_log_file != NULL);
-    fprintf(pipes_log_file, log_pipe_open_fmt, pipe.io.fd_read, pipe.io.fd_write);
+    fprintf(pipes_log_file, log_pipe_open_fmt, pipe[FD_READ], pipe[FD_WRITE]);
     fflush(pipes_log_file);
 }

@@ -1,6 +1,7 @@
 #ifndef LAB1_CONTEXT_H
 #define LAB1_CONTEXT_H
 #include <unistd.h>
+#include "ipc.h"
 #include "pipes_util.h"
 
 typedef struct context {
@@ -12,6 +13,6 @@ int context_create(context *ctx, size_t proc_n);
 
 void context_destroy(context *ctx);
 
-void context_create_adjacent_list(context *ctx, size_t row_number, adjacent_list *adj_list);
+void context_create_adjacent_list(context *ctx, local_id id, adjacent_list *adj_list);
 
 #endif //LAB1_CONTEXT_H

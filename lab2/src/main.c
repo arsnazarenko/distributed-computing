@@ -3,7 +3,7 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include "input_args.h"
+#include "program_arg.h"
 #include "context.h"
 #include "ipc.h"
 #include "logger.h"
@@ -114,8 +114,7 @@ static void phase(node *node, MessageType type) {
 //fixme: parse args with getopt.h
 int main(int argc, char **argv) {
     arguments program_arg;
-    parse_arguments(argc, argv, &program_arg);
-    validate_arguments(&program_arg);
+    parse_program_args(argc, argv, &program_arg);
     logger_create();
     context context;
     if (context_create(&context, program_arg.child_proc_number + 1) != 0) {
@@ -125,12 +124,10 @@ int main(int argc, char **argv) {
     for (local_id child_id = 1; child_id <= max_child_id; ++child_id) {
         int pid = fork();
         if (pid == -1) {
-            // error
             perror("fork() failed");
             context_destroy(&context);
             exit(1);
         } else if (pid == 0) {
-            // child
             node node;
             node_create(&node, child_id, &context);
             context_destroy(&context);

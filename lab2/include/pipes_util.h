@@ -1,20 +1,14 @@
 #ifndef LAB1_PIPES_UTIL_H
 #define LAB1_PIPES_UTIL_H
-// max number of processes in program
-#define N_PROC 10
 #include <unistd.h>
 
-typedef union half_duplex_pipe {
-    int fds[2];
-    struct io {
-        int fd_read;
-        int fd_write;
-    } io;
-} half_duplex_pipe;
+#define N_PROC 10
+#define FD_READ 0
+#define FD_WRITE 1
 
 typedef struct duplex_pipe {
-    half_duplex_pipe input_pipe;
-    half_duplex_pipe output_pipe;
+    int input_pipe[2];
+    int output_pipe[2];
 } duplex_pipe;
 
 typedef struct node_interface {
@@ -29,6 +23,6 @@ typedef struct adjacent_list {
 
 void close_fd(int fd);
 
-void close_pipe(half_duplex_pipe hdp);
+void close_pipe(int pipe[2]);
 
 #endif //LAB1_PIPES_UTIL_H

@@ -17,6 +17,6 @@ void log_received_all_started(local_id id);
 void log_done(local_id id);
 void log_received_all_done(local_id id);
 
-void log_pipe_open(half_duplex_pipe);
+void log_pipe_open(int pipe[2]);
 
 #endif //LAB1_LOGGER_H
