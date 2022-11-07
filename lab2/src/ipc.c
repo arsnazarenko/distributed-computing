@@ -56,7 +56,7 @@ int send(void *self, local_id dst, const Message *msg) {
     if (dst == self_node->id) { return -1; }
     return write_with_retry(self_node->neighbours.interfaces[dst].fd_write,
                             msg,
-                            (ssize_t) (sizeof(MessageHeader) + strlen(msg->s_payload)));
+                            (ssize_t) (sizeof(MessageHeader) + msg->s_header.s_payload_len));
 }
 
 int send_multicast(void *self, const Message *msg) {
