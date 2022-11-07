@@ -1,12 +1,18 @@
 #ifndef LAB1_INPUT_ARGS_H
 #define LAB1_INPUT_ARGS_H
-#include "unistd.h"
-#include "stdint.h"
 
+#include <stdint.h>
+#include <unistd.h>
+#include "banking.h"
+
+enum {
+    MAX_PROC_ID = 9,
+    MAX_BALANCE = 99
+};
 
 typedef struct arguments {
     size_t child_proc_number;
-    uint8_t start_balances[10];
+    balance_t start_balances[MAX_PROC_ID + 1];
 } arguments;
 
 void parse_program_args(int argc, char** argv, arguments* arg);

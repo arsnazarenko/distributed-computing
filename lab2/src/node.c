@@ -3,7 +3,7 @@
 
 void node_create(node *node, local_id id, context *ctx) {
     assert(node != NULL && ctx != NULL);
-    assert(id >= 0 && id < N_PROC);
+    assert(id >= 0 && id <= MAX_PROC_ID);
     node->id = id;
     context_create_adjacent_list(ctx, id, &(node->neighbours));
 }

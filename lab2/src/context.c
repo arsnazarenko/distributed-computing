@@ -1,9 +1,10 @@
 #include <assert.h>
+#include <fcntl.h>
 #include "context.h"
 #include "logger.h"
 
 int context_create(context *ctx, size_t proc_n) {
-    assert(proc_n <= N_PROC);
+    assert(proc_n <= (MAX_PROC_ID + 1));
     assert(ctx != NULL);
     ctx->sz = proc_n;
     for (size_t i = 0; i < ctx->sz; ++i) {
@@ -16,6 +17,10 @@ int context_create(context *ctx, size_t proc_n) {
                 context_destroy(ctx);
                 return -1;
             }
+            fcntl(input_p[FD_READ], F_SETFL, fcntl(input_p[FD_READ], F_GETFL, 0) | O_NONBLOCK);
+            fcntl(input_p[FD_WRITE], F_SETFL, fcntl(input_p[FD_WRITE], F_GETFL, 0) | O_NONBLOCK);
+            fcntl(output_p[FD_READ], F_SETFL, fcntl(output_p[FD_READ], F_GETFL, 0) | O_NONBLOCK);
+            fcntl(output_p[FD_WRITE], F_SETFL, fcntl(output_p[FD_WRITE], F_GETFL, 0) | O_NONBLOCK);
             log_pipe_open(input_p);
             log_pipe_open(output_p);
             ctx->pipe_table[i][j] = (duplex_pipe) {

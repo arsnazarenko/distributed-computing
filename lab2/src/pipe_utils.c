@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "pipes_util.h"
+#include "pipe_utils.h"
 
 void close_fd(int fd) {
     if (fd > 2) {

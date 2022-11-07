@@ -1,7 +1,7 @@
 #include <assert.h>
 #include "common.h"
 #include "logger.h"
-#include "pa1.h"
+#include "pa2345.h"
 
 FILE* pipes_log_file = NULL;
 FILE* events_log_file = NULL;
@@ -32,34 +32,34 @@ int logger_create(void) {
     return 0;
 }
 
-void log_started(local_id id, int pid, int ppid) {
+void log_started(local_id id, int pid, int ppid, balance_t balance) {
     assert(events_log_file != NULL);
-    printf(log_started_fmt, id, pid, ppid);
-    fprintf(events_log_file, log_started_fmt, id, pid, ppid);
+    printf(log_started_fmt, get_physical_time(), id, pid, ppid, balance);
+    fprintf(events_log_file, log_started_fmt, get_physical_time(), id, pid, ppid, balance);
     fflush(stdout);
     fflush(events_log_file);
 }
 
 void log_received_all_started(local_id id) {
     assert(events_log_file != NULL);
-    printf(log_received_all_started_fmt, id);
-    fprintf(events_log_file, log_received_all_started_fmt, id);
+    printf(log_received_all_started_fmt, get_physical_time(), id);
+    fprintf(events_log_file, log_received_all_started_fmt, get_physical_time(), id);
     fflush(stdout);
     fflush(events_log_file);
 }
 
-void log_done(local_id id) {
+void log_done(local_id id, balance_t balance) {
     assert(events_log_file != NULL);
-    printf(log_done_fmt, id);
-    fprintf(events_log_file, log_done_fmt, id);
+    printf(log_done_fmt, get_physical_time(), id, balance);
+    fprintf(events_log_file, log_done_fmt, get_physical_time(), id, balance);
     fflush(stdout);
     fflush(events_log_file);
 }
 
 void log_received_all_done(local_id id) {
     assert(events_log_file != NULL);
-    printf(log_received_all_done_fmt, id);
-    fprintf(events_log_file, log_received_all_done_fmt, id);
+    printf(log_received_all_done_fmt, get_physical_time(), id);
+    fprintf(events_log_file, log_received_all_done_fmt, get_physical_time(), id);
     fflush(stdout);
     fflush(events_log_file);
 }

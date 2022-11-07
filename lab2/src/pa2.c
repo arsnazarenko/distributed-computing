@@ -1,14 +1,19 @@
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <sys/wait.h>
-#include <unistd.h>
-#include "program_arg.h"
-#include "context.h"
-#include "ipc.h"
-#include "logger.h"
+#include <wait.h>
+#include "banking.h"
 #include "node.h"
+#include "logger.h"
 #include "pa1.h"
+#include "string.h"
+#include "arg_utils.h"
+#include "client_node.h"
+#include "account_node.h"
+
+void transfer(void * parent_data, local_id src, local_id dst,
+              balance_t amount)
+{
+    // student, please implement me
+}
 
 // debug methods
 //static void context_debug(const context *ctx) {
@@ -55,14 +60,11 @@
 //           (*msg).s_header.s_magic);
 //}
 
-
 static void send_msg(node *node, MessageType type) {
     Message msg;
     if (type == STARTED) {
-        log_started(node->id, getpid(), getppid());
         sprintf(msg.s_payload, log_started_fmt, node->id, getpid(), getppid());
     } else if (type == DONE) {
-        log_done(node->id);
         sprintf(msg.s_payload, log_done_fmt, node->id);
     }
     // else other types
@@ -75,11 +77,6 @@ static void send_msg(node *node, MessageType type) {
     send_multicast(node, &msg);
 }
 
-/**
- * todo: change function with if, else chain
- * todo: add some struct for phase with fields:
- * todo: phase_start_callback, next_phase_condition, phase_end_callback
-**/
 static void phase(node *node, MessageType type) {
     local_id max_id = (local_id) (node->neighbours.sz - 1);
     size_t process_count = node->neighbours.sz;
@@ -111,8 +108,8 @@ static void phase(node *node, MessageType type) {
     }
 }
 
-//fixme: parse args with getopt.h
-int main(int argc, char **argv) {
+int main(int argc, char * argv[])
+{
     arguments program_arg;
     parse_program_args(argc, argv, &program_arg);
     logger_create();
@@ -128,12 +125,11 @@ int main(int argc, char **argv) {
             context_destroy(&context);
             exit(1);
         } else if (pid == 0) {
-            node node;
-            node_create(&node, child_id, &context);
+            local_id id = child_id;
+            account_node account;
+            account_create(&account, program_arg.start_balances[id], id, &context);
             context_destroy(&context);
-            phase(&node, STARTED);
-            phase(&node, DONE);
-            node_destroy(&node);
+            account_destroy(&account);
             logger_destroy();
             exit(0);
         }
@@ -141,13 +137,15 @@ int main(int argc, char **argv) {
     node node;
     node_create(&node, PARENT_ID, &context);
     context_destroy(&context);
-    phase(&node, STARTED);
-    phase(&node, DONE);
     node_destroy(&node);
     int status;
     for (size_t i = 0; i < program_arg.child_proc_number; ++i) {
         wait(&status);
     }
     logger_destroy();
+    return 0;
+    //bank_robbery(parent_data);
+    //print_history(all);
+
     return 0;
 }

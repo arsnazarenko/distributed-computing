@@ -2,7 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "program_arg.h"
+#include "arg_utils.h"
+
+
 
 static const char * const SHORT_OPTIONS = "hp:";
 
@@ -13,7 +15,7 @@ static const char * const USAGE = "Usage: ./main -p [N] [START_BALANCE]...\n\n"
 
 static const char * const TRY_HELP = "Try ./main --help for more information.\n";
 
-static const struct option long_options[] = {
+static const struct option LONG_OPTIONS[] = {
         {"help",           no_argument,       NULL, 'h'},
         {"process-number", required_argument, NULL, 'p'},
         {NULL, 0,                             NULL, 0}
@@ -34,11 +36,11 @@ static void try(void) {
 }
 
 static void validate_option_args(const arguments* arg) {
-    if (arg->child_proc_number < 1 || arg->child_proc_number > 9) {
+    if (arg->child_proc_number < 1 || arg->child_proc_number > MAX_PROC_ID) {
         fprintf(stderr,
                 "Invalid value of required option -%c [--%s]\n",
-                long_options[1].val,
-                long_options[1].name);
+                LONG_OPTIONS[1].val,
+                LONG_OPTIONS[1].name);
         try();
         exit(-1);
     }
@@ -54,7 +56,7 @@ void parse_option_args(int argc, char** argv, arguments* arg) {
     while ((rez = getopt_long(argc,
                               argv,
                               SHORT_OPTIONS,
-                              long_options,
+                              LONG_OPTIONS,
                               &option_index)) != -1) {
         switch (rez) {
             case 'h': {
@@ -84,17 +86,13 @@ static void parse_non_option_args(int argc, char** argv, arguments* arg) {
     size_t balance_idx = 1;
     for (int index = optind; index < argc; ++index) {
         size_t start_balance = strtol(argv[index], NULL, 10);
-        if (start_balance < 1 || start_balance > 99) {
+        if (start_balance < 1 || start_balance > MAX_BALANCE) {
             fprintf(stderr, "Value of starting balance can be between 1 and 99 inclusive\n"
                     "Starting balance of account with id %zu: %zu\n", balance_idx, start_balance);
             exit(-1);
         }
-        arg->start_balances[balance_idx++] = (uint8_t) start_balance;
+        arg->start_balances[balance_idx++] = (balance_t) start_balance;
     }
-    for (size_t i = 1; i <= 9; ++i) {
-        printf("%d ", arg->start_balances[i]);
-    }
-    puts("\n");
 }
 
 void parse_program_args(int argc, char** argv, arguments* arg) {
