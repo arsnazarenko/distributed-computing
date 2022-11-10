@@ -4,7 +4,7 @@ SRC = ./src
 BUILD_DIR = ./build
 DEFAULT_BUILD_DIR = $(BUILD_DIR)/default
 SANITIZED_BUILD_DIR = $(BUILD_DIR)/sanitized
-DYN_LIB_DIR = $(pwd)/lib64
+DYN_LIB_DIR = $(shell pwd)/lib64
 
 CFLAGS += -std=c99 -Wall -Wextra -pedantic -g -I $(INCLUDE)
 SANITIZED_CFLAGS = $(CFLAGS) -fsanitize=address,undefined,leak
@@ -37,14 +37,14 @@ $(DEFAULT_BUILD_DIR)/%.o: $(SRC)/%.c
 	$(CC) -c $(CFLAGS) $< -o $@
 
 $(SANITIZED_BUILD_DIR)/pa2: $(SANITIZED_OBJS)
-	$(CC) $(SANITIZED_CFLAGS) $^ -L$(LIB_PATH) -o $@ -lruntime
+	$(CC) $(SANITIZED_CFLAGS) $^ -L$(DYN_LIB_DIR) -o $@ -lruntime
 
 $(DEFAULT_BUILD_DIR)/pa2: $(DEFAULT_OBJS)
-	$(CC) $(CFLAGS) $^ -L$(LIB_PATH) -o $@ -lruntime
+	$(CC) $(CFLAGS) $^ -L$(DYN_LIB_DIR) -o $@ -lruntime
 
 clean:
 	rm -rf $(BUILD_DIR) pipes.log events.log
-	unset LD_LIBRARY_PATH
 
 PHONY:
-	clean default_dirs sanitized_dirs clang-tidy
+	clean default_dirs sanitized_dirs clang-tidy 
+
