@@ -1,111 +1,18 @@
 #include <stdlib.h>
 #include <wait.h>
-#include "banking.h"
-#include "node.h"
-#include "logger.h"
-#include "pa1.h"
-#include "string.h"
-#include "arg_utils.h"
-#include "client_node.h"
 #include "account_node.h"
+#include "arg_utils.h"
+#include "banking.h"
+#include "client_node.h"
+#include "logger.h"
+#include "node.h"
+#include "string.h"
 
 void transfer(void * parent_data, local_id src, local_id dst,
               balance_t amount)
 {
-    // student, please implement me
-}
-
-// debug methods
-//static void context_debug(const context *ctx) {
-//    printf("Context: sz: %zu\n", ctx->sz);
-//    for (size_t i = 0; i < ctx->sz; ++i) {
-//        for (size_t j = 0; j < ctx->sz; ++j) {
-//            printf("[%3d,%3d,%3d,%3d] ",
-//                   ctx->pipe_table[i][j].input_pipe.io.fd_read,
-//                   ctx->pipe_table[i][j].input_pipe.io.fd_write,
-//                   ctx->pipe_table[i][j].output_pipe.io.fd_read,
-//                   ctx->pipe_table[i][j].output_pipe.io.fd_write);
-//        }
-//        printf("\n");
-//    }
-//}
-//
-//static void node_debug(const node *node) {
-//    printf("id: %d, list: %zu, { ", node->id, node->neighbours.sz);
-//    for (size_t i = 0; i < node->neighbours.sz; ++i) {
-//        printf("(%d, %d) ",
-//               node->neighbours.interfaces[i].fd_read,
-//               node->neighbours.interfaces[i].fd_write);
-//    }
-//    printf("}\n");
-//}
-//
-//static void send_debug(const node *node, Message *msg) {
-//    printf("Process %d send to all test_msg: { type: %d, p_len: %d, time: %d, magic: %d }\n",
-//           node->id,
-//           (*msg).s_header.s_type,
-//           (*msg).s_header.s_payload_len,
-//           (*msg).s_header.s_local_time,
-//           (*msg).s_header.s_magic);
-//}
-//
-//static void received_debug(const node *node, local_id from
-//        , Message *msg) {
-//    printf("process %d received from %d test_msg: { type: %d, p_len: %d, time: %d, magic: %d }\n",
-//           node->id,
-//           from,
-//           (*msg).s_header.s_type,
-//           (*msg).s_header.s_payload_len,
-//           (*msg).s_header.s_local_time,
-//           (*msg).s_header.s_magic);
-//}
-
-static void send_msg(node *node, MessageType type) {
-    Message msg;
-    if (type == STARTED) {
-        sprintf(msg.s_payload, log_started_fmt, node->id, getpid(), getppid());
-    } else if (type == DONE) {
-        sprintf(msg.s_payload, log_done_fmt, node->id);
-    }
-    // else other types
-    msg.s_header = (MessageHeader)
-            {.s_type = type,
-                    .s_payload_len = strlen(msg.s_payload),
-                    .s_local_time = 0,
-                    .s_magic = MESSAGE_MAGIC
-            };
-    send_multicast(node, &msg);
-}
-
-static void phase(node *node, MessageType type) {
-    local_id max_id = (local_id) (node->neighbours.sz - 1);
-    size_t process_count = node->neighbours.sz;
-    size_t received = 0;
-    for (local_id id = 1; id <= max_id; ++id) {
-        if (node->id == id) {
-            send_msg(node, type);
-
-        } else {
-            Message msg;
-            receive(node, id, &msg);
-            if (msg.s_header.s_type == (int16_t) type) {
-                ++received;
-            }
-        }
-    }
-    if (node->id == PARENT_ID) {
-        if (received == process_count - 1) {
-            if (type == STARTED) { log_received_all_started(node->id); }
-            else if (type == DONE) { log_received_all_done(node->id); }
-            // else other types
-        }
-    } else {
-        if (received == process_count - 2) {
-            if (type == STARTED) { log_received_all_started(node->id); }
-            else if (type == DONE) { log_received_all_done(node->id); }
-            // else other types
-        }
-    }
+    client_node *client_ptr = (client_node*) parent_data;
+    client_transfer(client_ptr, src, dst, amount);
 }
 
 int main(int argc, char * argv[])
@@ -128,24 +35,30 @@ int main(int argc, char * argv[])
             local_id id = child_id;
             account_node account;
             account_create(&account, program_arg.start_balances[id], id, &context);
-            context_destroy(&context);
+            context_destroy(&context);  // close unused pipes
+
+            account_first_phase(&account);
+            account_second_phase(&account);
+            account_third_phase(&account);
+
             account_destroy(&account);
             logger_destroy();
             exit(0);
         }
     }
-    node node;
-    node_create(&node, PARENT_ID, &context);
-    context_destroy(&context);
-    node_destroy(&node);
+    client_node client;
+    client_create(&client, PARENT_ID, &context);
+    context_destroy(&context);  // close unused pipes
+    client_first_phase(&client);
+    bank_robbery(&client, (local_id) program_arg.child_proc_number);
+    client_third_phase(&client);
+    AllHistory *all = &(client.all_history);
+    print_history(all);
+    client_destroy(&client);
     int status;
     for (size_t i = 0; i < program_arg.child_proc_number; ++i) {
         wait(&status);
     }
     logger_destroy();
-    return 0;
-    //bank_robbery(parent_data);
-    //print_history(all);
-
     return 0;
 }

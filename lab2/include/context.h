@@ -1,12 +1,24 @@
 #ifndef LAB1_CONTEXT_H
 #define LAB1_CONTEXT_H
+
 #include <unistd.h>
 #include "ipc.h"
-#include "pipes_util.h"
+#include "pipe_utils.h"
+#include "arg_utils.h"
+
+typedef struct node_interface {
+    int fd_read;
+    int fd_write;
+} node_interface;
+
+typedef struct adjacent_list {
+    size_t sz;
+    node_interface interfaces[MAX_PROC_ID + 1];
+} adjacent_list;
 
 typedef struct context {
     size_t sz;
-    duplex_pipe pipe_table[N_PROC][N_PROC];
+    duplex_pipe pipe_table[MAX_PROC_ID + 1][MAX_PROC_ID + 1];
 } context;
 
 int context_create(context *ctx, size_t proc_n);

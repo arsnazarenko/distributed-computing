@@ -85,7 +85,6 @@ int receive(void *self, local_id from, Message *msg) {
                            msg->s_header.s_payload_len);
 }
 
-
 int receive_any(void *self, Message *msg) {
     const node *self_node = (node *) self;
     const local_id max_id = (local_id) (self_node->neighbours.sz - 1);

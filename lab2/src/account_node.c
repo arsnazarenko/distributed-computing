@@ -39,7 +39,7 @@ static const msg_handler msg_handlers[CS_RELEASE + 1] = {
 static int receive_any_from_clients(void *self, Message *msg) {
     const node *self_node = (node *) self;
     const local_id max_id = (local_id) (self_node->neighbours.sz - 1);
-    for (local_id id = 0; id <= max_id; ++id) {
+    for (local_id id = 1; id <= max_id; ++id) {
         if (id != self_node->id) {
             if (receive(self, id, msg) != -1) { return 0; }
         }
@@ -49,12 +49,12 @@ static int receive_any_from_clients(void *self, Message *msg) {
 
 
 static void account_wait_all_msg(account_node *account, MessageType type, msg_handler on_receive, all_msg_handler on_receive_all) {
-    const size_t child_nodes_number = account->child_node.neighbours.sz - 1;
+    const size_t account_neighbours_number = account->child_node.neighbours.sz - 2;
     Message msg;
     size_t received = 0;
-    while(received != child_nodes_number) {
+    while(received != account_neighbours_number) {
         int res = receive_any_from_clients(&(account->child_node), &msg);
-        if (res == -1 && errno == EAGAIN) { continue; }
+        if (res != 0) { continue; }
         if (type == (MessageType) msg.s_header.s_type) {
             ++received;
             if (on_receive != NULL) {
@@ -71,7 +71,7 @@ static void account_wait_msg(account_node *account, const msg_handler* handlers)
     Message msg;
     while(true) {
         int res = receive_any(&(account->child_node), &msg);
-        if (res == -1 && errno == EAGAIN) { continue; }
+        if (res != 0) { continue; }
         MessageType type = msg.s_header.s_type;
         handlers[type](account, &msg);
         if (type == STOP) { break; }
@@ -96,7 +96,7 @@ static void account_history_update(account_node *account, BalanceState new_state
     assert(history->s_history_len > 0);
     const timestamp_t last_time = history->s_history[history->s_history_len - 1].s_time;
     const timestamp_t new_time = new_state.s_time;
-    assert(new_time > last_time);
+    assert(new_time >= last_time);
     for (int t = last_time + 1; t < new_time; ++t) {
         history->s_history[t] = history->s_history[t - 1];
         history->s_history[t].s_time = (timestamp_t) t;
@@ -124,8 +124,8 @@ void account_destroy(account_node *account) {
 static void account_handle_transfer(account_node *account, Message *message) {
     TransferOrder *transfer_order = (TransferOrder*) &(message->s_payload[0]);
     if (transfer_order->s_src == account->child_node.id) {
-        account_update_balance(account, get_physical_time(),  transfer_order->s_amount);
-        while(send(&(account->child_node), transfer_order->s_dst, message) == -1 && errno == EAGAIN);
+        account_update_balance(account, get_physical_time(),  -transfer_order->s_amount);
+        while(send(&(account->child_node), transfer_order->s_dst, message) != 0);
         log_transfer_out(account->child_node.id, transfer_order->s_amount, transfer_order->s_dst);
     }
     if (transfer_order->s_dst == account->child_node.id) {
@@ -183,7 +183,7 @@ static void account_send_ack(account_node *account) {
             .s_payload_len = 0,
             .s_local_time = time,
             .s_magic = MESSAGE_MAGIC};
-    while(send(&(account->child_node), PARENT_ID, &msg) == -1 && errno == EAGAIN);
+    while(send(&(account->child_node), PARENT_ID, &msg) != 0);
 }
 
 static void account_send_history(account_node *account) {
@@ -197,19 +197,19 @@ static void account_send_history(account_node *account) {
             .s_payload_len = payload_len,
             .s_local_time = time,
             .s_magic = MESSAGE_MAGIC};
-    while(send(&(account->child_node), PARENT_ID, &msg) == -1 && errno == EAGAIN);
+    while(send(&(account->child_node), PARENT_ID, &msg) != 0);
 }
 
-void first_phase(account_node *account) {
+void account_first_phase(account_node *account) {
     account_send_start_to_all(account);
     account_wait_all_msg(account, STARTED, NULL, account_handle_all_start);
 }
 
-void second_phase(account_node *account) {
+void account_second_phase(account_node *account) {
     account_wait_msg(account, msg_handlers);
 }
 
-void third_phase(account_node *account) {
+void account_third_phase(account_node *account) {
     account_send_done_to_all(account);
     account_wait_all_msg(account, DONE, NULL, account_handle_all_done);
     account_send_history(account);
