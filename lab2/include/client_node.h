@@ -1,7 +1,7 @@
 #ifndef LAB2_CLIENT_NODE_H
 #define LAB2_CLIENT_NODE_H
-#include "node.h"
 #include "banking.h"
+#include "node.h"
 
 typedef struct client_node {
     node parent_node;

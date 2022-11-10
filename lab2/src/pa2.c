@@ -1,12 +1,12 @@
 #include <stdlib.h>
 #include <wait.h>
+#include <string.h>
 #include "account_node.h"
 #include "arg_utils.h"
 #include "banking.h"
 #include "client_node.h"
 #include "logger.h"
 #include "node.h"
-#include "string.h"
 
 void transfer(void * parent_data, local_id src, local_id dst,
               balance_t amount)

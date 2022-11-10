@@ -1,6 +1,5 @@
 #ifndef LAB1_NODE_H
 #define LAB1_NODE_H
-
 #include "context.h"
 #include "ipc.h"
 

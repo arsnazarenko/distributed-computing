@@ -2,9 +2,9 @@
 #define LAB1_CONTEXT_H
 
 #include <unistd.h>
+#include "arg_utils.h"
 #include "ipc.h"
 #include "pipe_utils.h"
-#include "arg_utils.h"
 
 typedef struct node_interface {
     int fd_read;

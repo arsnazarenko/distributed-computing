@@ -1,6 +1,5 @@
 #ifndef LAB1_INPUT_ARGS_H
 #define LAB1_INPUT_ARGS_H
-
 #include <stdint.h>
 #include <unistd.h>
 #include "banking.h"

@@ -4,11 +4,10 @@ SRC = ./src
 BUILD_DIR = ./build
 DEFAULT_BUILD_DIR = $(BUILD_DIR)/default
 SANITIZED_BUILD_DIR = $(BUILD_DIR)/sanitized
-
+DYN_LIB_DIR = $(pwd)/lib64
 
 CFLAGS += -std=c99 -Wall -Wextra -pedantic -g -I $(INCLUDE)
 SANITIZED_CFLAGS = $(CFLAGS) -fsanitize=address,undefined,leak
-LIB_PATH=$(shell pwd)/lib64
 
 SRCS = $(shell find ./src -type f -name *.c)
 HEADS = $(shell find ./include -type f -name *.h)
@@ -18,9 +17,9 @@ SANITIZED_OBJS = $(patsubst $(SRC)/%.c, $(SANITIZED_BUILD_DIR)/%.o, $(SRCS))
 
 all: default sanitized
 
-default: env default_dirs $(DEFAULT_BUILD_DIR)/pa2
+default: default_dirs $(DEFAULT_BUILD_DIR)/pa2
 
-sanitized: env sanitized_dirs $(SANITIZED_BUILD_DIR)/pa2
+sanitized: sanitized_dirs $(SANITIZED_BUILD_DIR)/pa2
 
 clang-tidy:
 	clang-tidy $(SRC)/*.c $(INCLUDE)/*.h -checks=-*,clang-analyzer-* -- $(CFLAGS)
@@ -43,12 +42,9 @@ $(SANITIZED_BUILD_DIR)/pa2: $(SANITIZED_OBJS)
 $(DEFAULT_BUILD_DIR)/pa2: $(DEFAULT_OBJS)
 	$(CC) $(CFLAGS) $^ -L$(LIB_PATH) -o $@ -lruntime
 
-env:
-	export LD_LIBRARY_PATH=$(LIB_PATH)
-
 clean:
 	rm -rf $(BUILD_DIR) pipes.log events.log
 	unset LD_LIBRARY_PATH
 
 PHONY:
-	clean default_dirs sanitized_dirs clang-tidy env
+	clean default_dirs sanitized_dirs clang-tidy
