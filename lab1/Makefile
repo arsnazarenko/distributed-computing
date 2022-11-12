@@ -1,47 +1,53 @@
+BUILD_DIR = build
+OBJ_DIR = $(BUILD_DIR)/obj
+DEP_DIR = $(BUILD_DIR)/dep
+SRC_DIR = src
+INCLUDE_DIR = include
+TARGET = $(BUILD_DIR)/pa1
+
 CC = clang
-INCLUDE = ./include
-SRC = ./src
-BUILD_DIR = ./build
-DEFAULT_BUILD_DIR = $(BUILD_DIR)/default
-SANITIZED_BUILD_DIR = $(BUILD_DIR)/sanitized
+CFLAGS += -std=c11 -Wall -Wextra -pedantic -g -I ./$(INCLUDE_DIR)
 
-CFLAGS += -std=c99 -Wall -Wextra -pedantic -g -I $(INCLUDE)
-SANITIZED_CFLAGS = $(CFLAGS) -fsanitize=address,undefined,leak
+SOURCES = $(shell find $(SRC_DIR) -type f -name '*.c')
+OBJS = $(SOURCES:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
-SRCS = $(shell find ./src -type f -name *.c)
-HEADS = $(shell find ./include -type f -name *.h)
-DEFAULT_OBJS = $(patsubst $(SRC)/%.c, $(DEFAULT_BUILD_DIR)/%.o, $(SRCS))
-SANITIZED_OBJS = $(patsubst $(SRC)/%.c, $(SANITIZED_BUILD_DIR)/%.o, $(SRCS))
+all: print_info build_dir $(TARGET)
 
+print_info:
+	@echo target: $(TARGET) "\n"\
+	.c files dir: $(SRC_DIR) "\n"\
+	.h files dir: $(INCLUDE_DIR) "\n"\
+	.o files dir: $(OBJ_DIR) "\n"\
+	.d files dir: $(DEP_DIR) "\n"
 
-all: default sanitized
+build_dir:
+	@mkdir -p $(OBJ_DIR)
+	@mkdir -p $(DEP_DIR)
 
-default: default_dirs $(DEFAULT_BUILD_DIR)/main
-
-sanitized: sanitized_dirs $(SANITIZED_BUILD_DIR)/main
-
+#clang-tidy
 clang-tidy:
 	clang-tidy $(SRC)/*.c $(INCLUDE)/*.h -checks=-*,clang-analyzer-* -- $(CFLAGS)
 
-default_dirs:
-	mkdir -p $(DEFAULT_BUILD_DIR)
+#link
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) $(OBJS) -o $@
 
-sanitized_dirs:
-	mkdir -p $(SANITIZED_BUILD_DIR)
+#pull in dependency info for *existing* .o files
+-include $(OBJS:$(OBJ_DIR)/%.o=$(DEP_DIR)/%.d)
 
-$(SANITIZED_BUILD_DIR)/%.o: $(SRC)/%.c
-	$(CC) -c $(SANITIZED_CFLAGS) $< -o $@
+$(OBJ_DIR)/%.o: src/%.c
+	$(CC) -c $(CFLAGS) src/$*.c -o $(OBJ_DIR)/$*.o
+	$(CC) -MM $(CFLAGS) src/$*.c > $(DEP_DIR)/$*.d
+	@mv -f $(DEP_DIR)/$*.d $(DEP_DIR)/$*.d.tmp
+	@sed -e 's|.*:|$*.o:|' < $(DEP_DIR)/$*.d.tmp > $(DEP_DIR)/$*.d
+	@sed -e 's/.*://' -e 's/\\$$//' < $(DEP_DIR)/$*.d.tmp | fmt -1 | \
+	  sed -e 's/^ *//' -e 's/$$/:/' >> $(DEP_DIR)/$*.d
+	@rm -f $(DEP_DIR)/$*.d.tmp
 
-$(DEFAULT_BUILD_DIR)/%.o: $(SRC)/%.c
-	$(CC) -c $(CFLAGS) $< -o $@
-
-$(SANITIZED_BUILD_DIR)/main: $(SANITIZED_OBJS)
-	$(CC) $(SANITIZED_CFLAGS) $^ -o $@
-
-$(DEFAULT_BUILD_DIR)/main: $(DEFAULT_OBJS)
-	$(CC) $(CFLAGS) $^ -o $@
-
+#remove compilation products
 clean:
-	rm -rf $(BUILD_DIR) pipes.log events.log
+	rm -rf $(BUILD_DIR) *.log
 
-PHONY: clean default_dirs sanitized_dirs clang-tidy
+.PHONY:
+	clean build_dir
+
