@@ -72,7 +72,7 @@ void log_pipe_open(int pipe[2]) {
 
 void log_transfer_in(local_id src_id, balance_t amount, local_id dst_id) {
     assert(events_log_file != NULL);
-    printf(log_transfer_in_fmt, get_physical_time(), src_id, amount, dst_id);
+    printf(log_transfer_in_fmt, get_physical_time(), dst_id, amount, src_id);
     fprintf(events_log_file, log_transfer_in_fmt, get_physical_time(), src_id, amount, dst_id);
     fflush(stdout);
     fflush(events_log_file);

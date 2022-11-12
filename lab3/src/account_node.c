@@ -4,6 +4,7 @@
 #include "account_node.h"
 #include "logger.h"
 #include "pa2345.h"
+#include "lamport_time.h"
 
 typedef void (*all_msg_handler)(account_node *account);
 typedef void (*msg_handler)(account_node *account, Message *message);
@@ -13,7 +14,6 @@ static void account_wait_msg(account_node *account, const msg_handler* handlers)
 
 static void account_handle_transfer(account_node *account, Message *message);
 static void account_handle_stop(account_node *account, Message *message);
-
 static void account_handle_all_start(account_node *account);
 static void account_handle_all_done(account_node *account);
 
@@ -22,7 +22,7 @@ static void account_send_done_to_all(account_node *account);
 static void account_update_balance(account_node *account, timestamp_t timestamp, balance_t amount);
 static void account_send_ack(account_node *account);
 static void account_send_history(account_node *account);
-
+static void account_forward_transfer(account_node *account, TransferOrder* transfer);
 static void account_balance_state_init(account_node *account, balance_t start_balance);
 static void account_history_init(account_node *account, BalanceState init_state);
 
@@ -55,6 +55,7 @@ static void account_wait_all_msg(account_node *account, MessageType type, msg_ha
         int res = receive_any_from_clients(&(account->child_node), &msg);
         if (res != 0) { continue; }
         if (type == (MessageType) msg.s_header.s_type) {
+            inc_lamport_time();
             ++received;
             if (on_receive != NULL) {
                 on_receive(account, &msg);
@@ -71,6 +72,7 @@ static void account_wait_msg(account_node *account, const msg_handler* handlers)
     while(true) {
         int res = receive_any(&(account->child_node), &msg);
         if (res != 0) { continue; }
+        inc_lamport_time();
         MessageType type = msg.s_header.s_type;
         handlers[type](account, &msg);
         if (type == STOP) { break; }
@@ -78,7 +80,7 @@ static void account_wait_msg(account_node *account, const msg_handler* handlers)
 }
 
 static void account_balance_state_init(account_node *account, balance_t start_balance) {
-    account->current_state.s_time = get_physical_time();
+    account->current_state.s_time = get_lamport_time();
     account->current_state.s_balance = start_balance;
     account->current_state.s_balance_pending_in = 0;
 }
@@ -122,13 +124,17 @@ void account_destroy(account_node *account) {
 
 static void account_handle_transfer(account_node *account, Message *message) {
     TransferOrder *transfer_order = (TransferOrder*) &(message->s_payload[0]);
+    timestamp_t received = message->s_header.s_local_time;
+    sync_lamport_time(received);
     if (transfer_order->s_src == account->child_node.id) {
-        account_update_balance(account, get_physical_time(),  -transfer_order->s_amount);
+        account_update_balance(account, get_lamport_time(),  -transfer_order->s_amount);
+        inc_lamport_time();
         while(send(&(account->child_node), transfer_order->s_dst, message) != 0);
         log_transfer_out(account->child_node.id, transfer_order->s_amount, transfer_order->s_dst);
     }
     if (transfer_order->s_dst == account->child_node.id) {
         account_update_balance(account, get_physical_time(), transfer_order->s_amount);
+
         account_send_ack(account);
         log_transfer_in(transfer_order->s_src, transfer_order->s_amount, account->child_node.id);
     }
@@ -183,6 +189,10 @@ static void account_send_ack(account_node *account) {
             .s_local_time = time,
             .s_magic = MESSAGE_MAGIC};
     while(send(&(account->child_node), PARENT_ID, &msg) != 0);
+}
+
+static void account_forward_transfer(account_node *account, TransferOrder *transfer) {
+
 }
 
 static void account_send_history(account_node *account) {

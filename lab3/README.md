@@ -6,7 +6,7 @@ make
 ```
 2. Set the environment variable
 ```shell
-export LD_LIBRARY_PATH=/path/to/folder/with/library
+export LD_LIBRARY_PATH=/path/to/dir/with/library
 ```
 
 3. Run app

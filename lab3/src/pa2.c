@@ -2,21 +2,16 @@
 #include <wait.h>
 #include <string.h>
 #include "account_node.h"
-#include "arg_utils.h"
-#include "banking.h"
 #include "client_node.h"
 #include "logger.h"
-#include "node.h"
 
-void transfer(void * parent_data, local_id src, local_id dst,
-              balance_t amount)
-{
-    client_node *client_ptr = (client_node*) parent_data;
+void transfer(void *parent_data, local_id src, local_id dst,
+              balance_t amount) {
+    client_node *client_ptr = (client_node *) parent_data;
     client_transfer(client_ptr, src, dst, amount);
 }
 
-int main(int argc, char * argv[])
-{
+int main(int argc, char *argv[]) {
     arguments program_arg;
     parse_program_args(argc, argv, &program_arg);
     logger_create();
