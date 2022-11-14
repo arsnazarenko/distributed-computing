@@ -34,32 +34,32 @@ int logger_create(void) {
 
 void log_started(local_id id, int pid, int ppid, balance_t balance) {
     assert(events_log_file != NULL);
-    printf(log_started_fmt, get_physical_time(), id, pid, ppid, balance);
-    fprintf(events_log_file, log_started_fmt, get_physical_time(), id, pid, ppid, balance);
+    printf(log_started_fmt, get_lamport_time(), id, pid, ppid, balance);
+    fprintf(events_log_file, log_started_fmt, get_lamport_time(), id, pid, ppid, balance);
     fflush(stdout);
     fflush(events_log_file);
 }
 
 void log_received_all_started(local_id id) {
     assert(events_log_file != NULL);
-    printf(log_received_all_started_fmt, get_physical_time(), id);
-    fprintf(events_log_file, log_received_all_started_fmt, get_physical_time(), id);
+    printf(log_received_all_started_fmt, get_lamport_time(), id);
+    fprintf(events_log_file, log_received_all_started_fmt, get_lamport_time(), id);
     fflush(stdout);
     fflush(events_log_file);
 }
 
 void log_done(local_id id, balance_t balance) {
     assert(events_log_file != NULL);
-    printf(log_done_fmt, get_physical_time(), id, balance);
-    fprintf(events_log_file, log_done_fmt, get_physical_time(), id, balance);
+    printf(log_done_fmt, get_lamport_time(), id, balance);
+    fprintf(events_log_file, log_done_fmt, get_lamport_time(), id, balance);
     fflush(stdout);
     fflush(events_log_file);
 }
 
 void log_received_all_done(local_id id) {
     assert(events_log_file != NULL);
-    printf(log_received_all_done_fmt, get_physical_time(), id);
-    fprintf(events_log_file, log_received_all_done_fmt, get_physical_time(), id);
+    printf(log_received_all_done_fmt, get_lamport_time(), id);
+    fprintf(events_log_file, log_received_all_done_fmt, get_lamport_time(), id);
     fflush(stdout);
     fflush(events_log_file);
 }
@@ -72,16 +72,16 @@ void log_pipe_open(int pipe[2]) {
 
 void log_transfer_in(local_id src_id, balance_t amount, local_id dst_id) {
     assert(events_log_file != NULL);
-    printf(log_transfer_in_fmt, get_physical_time(), dst_id, amount, src_id);
-    fprintf(events_log_file, log_transfer_in_fmt, get_physical_time(), src_id, amount, dst_id);
+    printf(log_transfer_in_fmt, get_lamport_time(), dst_id, amount, src_id);
+    fprintf(events_log_file, log_transfer_in_fmt, get_lamport_time(), src_id, amount, dst_id);
     fflush(stdout);
     fflush(events_log_file);
 }
 
 void log_transfer_out(local_id src_id, balance_t amount, local_id dst_id) {
     assert(events_log_file != NULL);
-    printf(log_transfer_out_fmt, get_physical_time(), src_id, amount, dst_id);
-    fprintf(events_log_file, log_transfer_out_fmt, get_physical_time(), src_id, amount, dst_id);
+    printf(log_transfer_out_fmt, get_lamport_time(), src_id, amount, dst_id);
+    fprintf(events_log_file, log_transfer_out_fmt, get_lamport_time(), src_id, amount, dst_id);
     fflush(stdout);
     fflush(events_log_file);
 }

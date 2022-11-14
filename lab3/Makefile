@@ -27,7 +27,7 @@ build_dir:
 
 #clang-tidy
 clang-tidy:
-	clang-tidy $(SRC)/*.c $(INCLUDE)/*.h -checks=-*,clang-analyzer-* -- $(CFLAGS)
+	clang-tidy $(SRC_DIR)/*.c $(INCLUDE_DIR)/*.h -checks=-*,clang-analyzer-* -- $(CFLAGS)
 
 #link
 $(TARGET): $(OBJS)

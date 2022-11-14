@@ -2,7 +2,7 @@
 #include <string.h>
 #include "client_node.h"
 #include "logger.h"
-
+#include "lamport_time.h"
 typedef void (*all_msg_handler)(client_node *account);
 typedef void (*msg_handler)(client_node *account, Message *message);
 
@@ -31,6 +31,8 @@ static void client_wait_all_msg(client_node *client, MessageType type, msg_handl
         int res = receive_any(&(client->parent_node), &msg);
         if (res == -1 && errno == EAGAIN) { continue; }
         if (type == (MessageType) msg.s_header.s_type) {
+            sync_lamport_time(msg.s_header.s_local_time);
+            inc_lamport_time();
             ++received;
             if (on_receive != NULL) {
                 on_receive(client, &msg);
@@ -58,11 +60,12 @@ static void client_handle_history(client_node *client, Message *message) {
 }
 
 static void client_send_stop_to_all(client_node *client) {
+    timestamp_t timestamp = inc_lamport_time();
     Message msg;
     msg.s_header = (MessageHeader) {
             .s_type = STOP,
             .s_payload_len = 0,
-            .s_local_time = get_physical_time(),
+            .s_local_time = timestamp,
             .s_magic = MESSAGE_MAGIC
     };
     send_multicast(&(client->parent_node), &msg);
@@ -70,6 +73,7 @@ static void client_send_stop_to_all(client_node *client) {
 
 
 void client_transfer(client_node *client, local_id src, local_id dst, balance_t amount) {
+    timestamp_t timestamp = inc_lamport_time();
     Message msg;
     memset(msg.s_payload, 0, sizeof(TransferOrder));
 
@@ -81,12 +85,14 @@ void client_transfer(client_node *client, local_id src, local_id dst, balance_t 
     msg.s_header = (MessageHeader) {
             .s_type = TRANSFER,
             .s_payload_len = sizeof(TransferOrder),
-            .s_local_time = get_physical_time(),
+            .s_local_time = timestamp,
             .s_magic = MESSAGE_MAGIC
     };
 
     while (send(&(client->parent_node), src, &msg) != 0);
     while( receive(&(client->parent_node), dst, &msg) != 0);
+    sync_lamport_time(msg.s_header.s_local_time);
+    inc_lamport_time();
 }
 void client_first_phase(client_node *client) {
     client_wait_all_msg(client, STARTED, NULL, client_handle_all_start);

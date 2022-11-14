@@ -15,6 +15,7 @@ timestamp_t inc_lamport_time(void) {
     return ++local_timestamp;
 }
 
-void sync_lamport_time(timestamp_t received) {
+timestamp_t sync_lamport_time(timestamp_t received) {
     local_timestamp = max(local_timestamp, received);
+    return local_timestamp;
 }
