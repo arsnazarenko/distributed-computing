@@ -5,15 +5,14 @@
 #include "arg_utils.h"
 
 
-
 static const char * const SHORT_OPTIONS = "hp:";
 
-static const char * const USAGE = "Usage: ./main -p [N] [START_BALANCE]...\n\n"
+static const char * const USAGE = "Usage: ./pa3 -p [N] [START_BALANCE]...\n\n"
                                   "Options:\n"
                                   "%-40s%s\n"
                                   "%-40s%s\n";
 
-static const char * const TRY_HELP = "Try ./main --help for more information.\n";
+static const char * const TRY_HELP = "Try ./pa3 --help for more information.\n";
 
 static const struct option LONG_OPTIONS[] = {
         {"help",           no_argument,       NULL, 'h'},
@@ -96,6 +95,7 @@ static void parse_non_option_args(int argc, char** argv, arguments* arg) {
 }
 
 void parse_program_args(int argc, char** argv, arguments* arg) {
+
     parse_option_args(argc, argv, arg);
     validate_option_args(arg);
     parse_non_option_args(argc, argv, arg);
