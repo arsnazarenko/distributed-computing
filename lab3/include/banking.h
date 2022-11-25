@@ -41,7 +41,7 @@ enum {
 };
 
 /**
- * Describes balance state of process with id=s_id at each time t >= 0
+ * Describes balance account_state of process with id=s_id at each time t >= 0
  * and t < s_history_len
  */
 typedef struct {

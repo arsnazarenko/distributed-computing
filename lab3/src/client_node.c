@@ -3,15 +3,6 @@
 #include "client_node.h"
 #include "logger.h"
 #include "lamport_time.h"
-typedef void (*all_msg_handler)(client_node *account);
-typedef void (*msg_handler)(client_node *account, Message *message);
-
-static void client_handle_all_start(client_node *client);
-static void client_handle_all_done(client_node *client);
-static void client_handle_history(client_node *client, Message *message);
-
-static void client_wait_all_msg(client_node *client, MessageType type, msg_handler on_receive, all_msg_handler on_receive_all);
-static void client_send_stop_to_all(client_node *client);
 
 void client_create(client_node *client, local_id id, context *ctx) {
     node_create(&(client->parent_node), id, ctx);
@@ -23,7 +14,7 @@ void client_destroy(client_node *client) {
     node_destroy(&(client->parent_node));
 }
 
-static void client_wait_all_msg(client_node *client, MessageType type, msg_handler on_receive, all_msg_handler on_receive_all) {
+void client_wait_all_msg(client_node *client, MessageType type, msg_handler on_receive, all_msg_handler on_receive_all) {
     const size_t account_node_number = client->parent_node.neighbours.sz - 1;
     Message msg;
     size_t received = 0;
@@ -44,22 +35,22 @@ static void client_wait_all_msg(client_node *client, MessageType type, msg_handl
     }
 }
 
-static void client_handle_all_start(client_node *client) {
+void client_handle_all_start(client_node *client) {
     log_received_all_started(client->parent_node.id);
 }
 
-static void client_handle_all_done(client_node *client) {
+void client_handle_all_done(client_node *client) {
     log_received_all_done(client->parent_node.id);
 }
 
-static void client_handle_history(client_node *client, Message *message) {
+void client_handle_history(client_node *client, Message *message) {
     BalanceHistory *received_history = (BalanceHistory*) message->s_payload;
     BalanceHistory *ptr = &(client->all_history.s_history[received_history->s_id - 1]);
     memcpy(ptr, received_history, sizeof(BalanceHistory));
     ++(client->all_history.s_history_len);
 }
 
-static void client_send_stop_to_all(client_node *client) {
+void client_send_stop_to_all(client_node *client) {
     timestamp_t timestamp = inc_lamport_time();
     Message msg;
     msg.s_header = (MessageHeader) {

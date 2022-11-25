@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <wait.h>
 #include <string.h>
+#include <stdbool.h>
 #include "account_node.h"
 #include "client_node.h"
 #include "logger.h"
@@ -30,12 +31,15 @@ int main(int argc, char *argv[]) {
             local_id id = child_id;
             account_node account;
             account_create(&account, program_arg.start_balances[id], id, &context);
-            context_destroy(&context);  // close unused pipes
+            context_destroy(&context);
 
-            account_first_phase(&account);
-            account_second_phase(&account);
-            account_third_phase(&account);
-
+            receive_handler account_handlers[CS_RELEASE + 1] = {
+                    [STARTED] = account_handle_started,
+                    [DONE] = account_handle_done,
+                    [TRANSFER] = account_handle_transfer,
+                    [STOP] = account_handle_stop
+            };
+            account_run(&account, account_handlers);
             account_destroy(&account);
             logger_destroy();
             exit(0);
