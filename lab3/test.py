@@ -3,13 +3,17 @@ import random
 import sys
 
 def main():
-    if len(sys.argv) < 2:
-        print("Missing required argument: path to binary")
+    if len(sys.argv) < 3:
+        print("Missing required arguments: path to binary, number of test")
         exit(1)
     binary = sys.argv[1]
+    one_test_count = int(sys.argv[2])
+    if one_test_count < 1 or one_test_count > 50:
+        print("Number of test can be between 1 and 50")
+        exit(1)
     args = " -p "
     for i in range(1, 10):
-        for c in range(10):
+        for c in range(one_test_count):
             current_args = args + str(i) + " "
             sum = 0
             for j in range(1, i + 1):
