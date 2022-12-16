@@ -14,6 +14,7 @@ struct account_node {
     struct {
         size_t started_received;
         size_t done_received;
+        size_t reply_received;
         bool break_flag;
     } event_state;
     const receive_handler *handlers;

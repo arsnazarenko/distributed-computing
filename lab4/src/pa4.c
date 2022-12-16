@@ -46,7 +46,8 @@ int main(int argc, char *argv[]) {
             };
             char buf[100];
             int iter_number = id * 5;
-            // account_first_phase();
+
+            account_first_phase(&account);
             for (int i = 1; i <= iter_number; ++i) {
                 account_request_cs(&account);
 
@@ -55,8 +56,8 @@ int main(int argc, char *argv[]) {
 
                 account_release_cs(&account);
             }
-            // account_third_phase();
-            account_run(&account, account_handlers);
+            account_third_phase(&account);
+
             account_destroy(&account);
             logger_destroy();
             exit(0);
