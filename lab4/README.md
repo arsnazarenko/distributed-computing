@@ -12,7 +12,6 @@ $ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/path/to/dir/with/library
 Path to shared library: `./lib64/libruntime.so`
 
 3. Run app
-
 Help:
 ```shell
 $ ./pa4 --help
