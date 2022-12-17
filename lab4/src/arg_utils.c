@@ -7,7 +7,7 @@
 
 static const char * const SHORT_OPTIONS = "hmp:";
 
-static const char * const USAGE = "Usage: ./pa4 -p [N]\n\n"
+static const char * const USAGE = "Usage: ./pa4 -p [N] [OPTIONS]\n\n"
                                   "Options:\n"
                                   "%-40s%s\n"
                                   "%-40s%s\n"

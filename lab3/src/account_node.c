@@ -100,11 +100,13 @@ void account_update_balance(account_node *account, timestamp_t time, balance_t a
 
 void account_update_history_pending(account_node *account, timestamp_t sender_timestamp, balance_t amount) {
     assert(sender_timestamp < account->current_state.s_time);
-    // sender_timestamp - 1 because:
-    // in timestamp "t" sender receive TRANSFER msg from client and decrease his balance
-    // in timestamp "t + 1" sender send TRANSFER msg to receiver (s_local_time in header = "t + 1")
-    // in timestamp "t + 2" receiver receive TRANSFER msg (with s_local_time in header = "t + 1") and increase his balance
-    // in timestamp "t" sender already haven't part of balance, we should include this part in receiver account_state (balance_pending_in);
+    /**
+     * sender_timestamp - 1 because:
+     * in timestamp "t" sender receive TRANSFER msg from client and decrease his balance
+     * in timestamp "t + 1" sender send TRANSFER msg to receiver (s_local_time in header = "t + 1")
+     * in timestamp "t + 2" receiver receive TRANSFER msg (with s_local_time in header = "t + 1") and increase his balance
+     * in timestamp "t" sender already haven't part of balance, we should include this part in receiver account_state (balance_pending_in);
+     */
     timestamp_t pending_start = sender_timestamp - 1;
     for (timestamp_t i = pending_start; i < account->current_state.s_time; ++i) {
         account->history.s_history[i].s_balance_pending_in = amount;

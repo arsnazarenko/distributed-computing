@@ -7,7 +7,7 @@ DYN_LIB_DIR = $(shell pwd)/lib64
 TARGET = $(BUILD_DIR)/pa3
 
 CC = clang
-CFLAGS += -std=c11 -Wall -Wextra -pedantic -g -I ./$(INCLUDE_DIR)
+CFLAGS += -std=c99 -Wall -Wextra -pedantic -g -I ./$(INCLUDE_DIR)
 
 SOURCES = $(shell find $(SRC_DIR) -type f -name '*.c')
 OBJS = $(SOURCES:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)

@@ -6,7 +6,6 @@
 
 enum {
     MAX_PROC_ID = 9,
-    MAX_BALANCE = 99
 };
 
 typedef struct arguments {
