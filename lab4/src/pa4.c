@@ -4,21 +4,12 @@
 #include "client_node.h"
 #include "logger.h"
 #include "pa2345.h"
-static void arg_dump(const arguments* args) {
-    printf(
-            "args {\n"
-            "child_proc_number: %zu\n"
-            "mutexl: %s\n"
-            "}\n",
-            args->child_proc_number,
-            (args->mutex_flag ? "true" : "false")
-            );
-}
+
 
 int main(int argc, char *argv[]) {
     arguments program_arg;
     parse_program_args(argc, argv, &program_arg);
-    arg_dump(&program_arg);
+
     logger_create();
     context context;
     if (context_create(&context, program_arg.child_proc_number + 1) != 0) {
@@ -34,9 +25,6 @@ int main(int argc, char *argv[]) {
         } else if (pid == 0) {
             local_id id = child_id;
             account_node account;
-            account_create(&account, id, &context);
-            context_destroy(&context);
-
             receive_handler account_handlers[CS_RELEASE + 1] = {
                     [STARTED] = account_handle_started,
                     [DONE] = account_handle_done,
@@ -44,17 +32,22 @@ int main(int argc, char *argv[]) {
                     [CS_REPLY] = account_handle_reply,
                     [CS_RELEASE] = account_handle_release,
             };
+            account_create(&account, id, &context, account_handlers);
+            context_destroy(&context);
+
+
             char buf[100];
             int iter_number = id * 5;
-
+            bool mutex = program_arg.mutex_flag;
             account_first_phase(&account);
             for (int i = 1; i <= iter_number; ++i) {
-                account_request_cs(&account);
-
                 sprintf(buf, log_loop_operation_fmt, id, i, iter_number);
-                print(buf);
 
-                account_release_cs(&account);
+                if (mutex) { account_request_cs(&account); } // MUTEX ACQUIRE
+                                                                    //
+                print(buf);                                       //  - CRITICAL  SECTION
+                                                                    //
+                if (mutex) { account_release_cs(&account); } //  MUTEX ACQUIRE
             }
             account_third_phase(&account);
 

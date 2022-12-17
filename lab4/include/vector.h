@@ -1,7 +1,8 @@
 #ifndef LAB4_VECTOR_H
 #define LAB4_VECTOR_H
 
-#include "stddef.h"
+#include <stddef.h>
+#include <stdio.h>
 #include "ipc.h"
 
 /**
@@ -12,7 +13,7 @@ typedef struct key {
     local_id id;
 } key;
 
-int key_compare(const key* lhs, const key* rhs);
+int lamport_time_compare(const key* lhs, const key* rhs);
 
 typedef key data_t;
 typedef int error_t;

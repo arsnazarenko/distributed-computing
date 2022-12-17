@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include "ipc.h"
 #include "pipe_utils.h"
+#include "banking.h"
 
 extern FILE* pipes_log_file;
 extern FILE* events_log_file;

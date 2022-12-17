@@ -177,19 +177,14 @@ void vector_print(const_vector_t vec, FILE* stream) {
     fprintf(stream, " ]}\n");
 }
 
-static int time_compare(timestamp_t lhs, timestamp_t rhs) {
-    if (rhs > lhs) {
-        return 1;
-    }
-    return (rhs < lhs) ? -1 : 0;
-}
-
-int key_compare(const key* lhs, const key* rhs) {
+int lamport_time_compare(const key* lhs, const key* rhs) {
     if (lhs->time > rhs->time) {
         return 1;
     } else if (lhs->time < rhs->time) {
         return -1;
     } else {
-        return time_compare(lhs->time, rhs->time);
+        if (lhs->id > rhs->id) { return 1;}
+        else if (rhs->id > lhs->id) { return -1; }
+        else { return 0; }
     }
 }

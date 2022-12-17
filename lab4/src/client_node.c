@@ -44,6 +44,7 @@ void client_handle_all_done(client_node *client) {
 void client_first_phase(client_node *client) {
     client_wait_all_msg(client, STARTED, NULL, client_handle_all_start);
 }
+
 void client_third_phase(client_node *client) {
     client_wait_all_msg(client, DONE, NULL, client_handle_all_done);
 }
