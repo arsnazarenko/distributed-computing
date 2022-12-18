@@ -5,14 +5,13 @@
 #include "pa2345.h"
 #include "lamport_time.h"
 
-static const key NOT_IN_REQUEST_CS_STATE = {0, 0};
+static const key NOT_IN_REQUEST_CS_STATE = {-1, -1};
 
 static void account_loop_start(account_node *account);
 static void account_loop_break(account_node *account);
 
 static bool account_is_work_done(account_node *account);
 static bool account_is_cs_candidate(account_node *account);
-static void account_put_in_queue(account_node *account, key k);
 
 static void account_reply_cs(account_node *account, local_id dst);
 static void account_send_start_to_all(account_node *account);
@@ -32,11 +31,6 @@ static bool account_is_work_done(account_node *account) {
 
 static bool account_is_cs_candidate(account_node *account) {
     return (account->state_flags.reply_received == account->node.neighbours.sz - 2);
-}
-
-static void account_put_in_queue(account_node *account, key k) {
-    vector_push_back(account->req_queue, k);
-    vector_sort(account->req_queue, lamport_time_compare);
 }
 
 static void account_loop_start(account_node *account) {
@@ -142,27 +136,17 @@ void account_handle_reply(account_node *account, Message *message, local_id from
     if (account_is_cs_candidate(account)) { account_loop_break(account); }
 }
 
-void account_handle_release(account_node *account, Message *message, local_id from) {
-    (void) message;
-    (void) from;
-    vector_erase(account->req_queue, 0);
-    if (vector_len(account->req_queue) > 0) {
-        if (account_is_cs_candidate(account)) { account_loop_break(account); } // and enter in CS
-    }
-}
-
 void account_handle_request(account_node *account, Message *message, local_id from) {
+    const key current_req_time = account->current_request_time;
     const key received_req_time = {.id = from, .time = message->s_header.s_local_time};
-    if (lamport_time_compare(&(account->current_request_time), &NOT_IN_REQUEST_CS_STATE) == 0) {
+
+    int comp_with_not_in_req_state = lamport_time_compare(&current_req_time, &NOT_IN_REQUEST_CS_STATE);
+    int comp_with_received = lamport_time_compare(&current_req_time, &received_req_time);
+    // if process not in request cs state of if req time older than received req time
+    if (comp_with_not_in_req_state == 0 || comp_with_received == 1) {
         account_reply_cs(account, from);
     } else {
-        int comp = lamport_time_compare(&(account->current_request_time), &received_req_time);
-        if (comp == 1) { // our req time older
-            account_reply_cs(account, from);
-        } else { // received req time older
-            //delay reply
-            account->delayed_replies.arr[from] = 1;
-        }
+        account->delayed_replies.arr[from] = 1;
     }
 }
 
@@ -192,12 +176,11 @@ void account_release_cs(account_node *account) {
             .s_local_time = timestamp,
             .s_magic = MESSAGE_MAGIC};
     const local_id max_id = (local_id) (account->delayed_replies.sz - 1);
+    // send delayed replies
     for(local_id id = 0; id <= max_id; ++id) {
-        if (id != PARENT_ID && id != account->node.id) {
-            if (account->delayed_replies.arr[id]) {
-                while (send(&(account->node), id, &msg) != 0);
-                account->delayed_replies.arr[id] = 0;
-            }
+        if (id != PARENT_ID && id != account->node.id && account->delayed_replies.arr[id]) {
+            while (send(&(account->node), id, &msg) != 0);
+            account->delayed_replies.arr[id] = 0;
         }
     }
 
