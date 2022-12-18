@@ -2,14 +2,14 @@
 #define LAB2_ACCOUNT_NODE_H
 
 #include "node.h"
-#include "vector.h"
+#include "lamport_time.h"
 
 typedef struct account_node account_node;
 typedef void (*receive_handler)(account_node *account, Message *message, local_id from);
 
 struct account_node {
     node node;
-    key current_request_time;
+    lamport_key current_request_time;
     const receive_handler *handlers;
     struct state_flags {
         size_t started_received;

@@ -3,9 +3,8 @@
 #include "account_node.h"
 #include "logger.h"
 #include "pa2345.h"
-#include "lamport_time.h"
 
-static const key NOT_IN_REQUEST_CS_STATE = {-1, -1};
+static const lamport_key NOT_IN_REQUEST_CS_STATE = {-1, -1};
 
 static void account_loop_start(account_node *account);
 static void account_loop_break(account_node *account);
@@ -137,11 +136,11 @@ void account_handle_reply(account_node *account, Message *message, local_id from
 }
 
 void account_handle_request(account_node *account, Message *message, local_id from) {
-    const key current_req_time = account->current_request_time;
-    const key received_req_time = {.id = from, .time = message->s_header.s_local_time};
+    const lamport_key current_req_time = account->current_request_time;
+    const lamport_key received_req_time = {.id = from, .time = message->s_header.s_local_time};
 
-    int comp_with_not_in_req_state = lamport_time_compare(&current_req_time, &NOT_IN_REQUEST_CS_STATE);
-    int comp_with_received = lamport_time_compare(&current_req_time, &received_req_time);
+    int comp_with_not_in_req_state = lamport_key_compare(&current_req_time, &NOT_IN_REQUEST_CS_STATE);
+    int comp_with_received = lamport_key_compare(&current_req_time, &received_req_time);
     // if process not in request cs state of if req time older than received req time
     if (comp_with_not_in_req_state == 0 || comp_with_received == 1) {
         account_reply_cs(account, from);
@@ -152,7 +151,7 @@ void account_handle_request(account_node *account, Message *message, local_id fr
 
 void account_request_cs(account_node *account) {
     timestamp_t timestamp = inc_lamport_time();
-    key req_time = {.id = account->node.id, .time = timestamp};
+    const lamport_key req_time = {.id = account->node.id, .time = timestamp};
     account->current_request_time = req_time;
     Message msg;
     msg.s_header = (MessageHeader) {

@@ -7,13 +7,13 @@
 
 static const char * const SHORT_OPTIONS = "hmp:";
 
-static const char * const USAGE = "Usage: ./pa4 -p [N] [OPTIONS]\n\n"
+static const char * const USAGE = "Usage: ./pa5 -p [N] [OPTIONS]\n\n"
                                   "Options:\n"
                                   "%-40s%s\n"
                                   "%-40s%s\n"
                                   "%-40s%s\n";
 
-static const char * const TRY_HELP = "Try ./pa4 --help for more information.\n";
+static const char * const TRY_HELP = "Try ./pa5 --help for more information.\n";
 
 static const struct option LONG_OPTIONS[] = {
         {"help",           no_argument,       NULL, 'h'},
@@ -30,7 +30,7 @@ static void usage(void) {
             "-p [N], --process-number[=N]",
             "Required option. Define number of child processes created in the program. Value can be between 1 and 9 inclusive.",
             "-m, --mutexl",
-            "Using the Lamport mutual exclusion algorithm"
+            "Using the Ricart-Agrawala mutual exclusion algorithm"
     );
 }
 
