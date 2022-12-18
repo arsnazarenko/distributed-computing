@@ -33,17 +33,18 @@ static bool account_is_cs_candidate(account_node *account) {
 }
 
 static void account_loop_start(account_node *account) {
+    const size_t neighbouring_accounts_number = account->node.neighbours.sz - 2;
     account->state_flags.break_flag = false;
     Message msg;
     local_id from_id = 0;
-    if (account->node.neighbours.sz - 2 < 1) { return;}
+    if (neighbouring_accounts_number < 1) { return;}
     while (!account_is_work_done(account) && !account->state_flags.break_flag) {
         from_id %= account->node.neighbours.sz;
         if (from_id != account->node.id) {
             if (receive(&(account->node), from_id, &msg) != -1) {
                 sync_lamport_time(msg.s_header.s_local_time);
                 inc_lamport_time();
-                receive_handler on_receive = account->handlers[msg.s_header.s_type];
+                account_recv_handler on_receive = account->handlers[msg.s_header.s_type];
                 if (on_receive) {
                     on_receive(account, &msg, from_id);
                 }
@@ -90,11 +91,11 @@ static void account_send_done_to_all(account_node *account) {
     send_multicast(&(account->node), &msg);
 }
 
-void account_create(account_node *account, local_id id, context *ctx, const receive_handler *handlers) {
+void account_create(account_node *account, local_id id, context *ctx, const account_recv_handler *handlers) {
     node_create(&(account->node), id, ctx);
     account->handlers = handlers;
     account->current_request_time = NOT_IN_REQUEST_CS_STATE;
-    account->state_flags = (struct state_flags) {
+    account->state_flags = (struct account_state_flags) {
         .done_received = 0,
         .started_received = 0,
         .reply_received = 0,

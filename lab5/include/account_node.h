@@ -5,13 +5,13 @@
 #include "lamport_time.h"
 
 typedef struct account_node account_node;
-typedef void (*receive_handler)(account_node *account, Message *message, local_id from);
+typedef void (*account_recv_handler)(account_node *account, Message *message, local_id from);
 
 struct account_node {
     node node;
     lamport_key current_request_time;
-    const receive_handler *handlers;
-    struct state_flags {
+    const account_recv_handler *handlers;
+    struct account_state_flags {
         size_t started_received;
         size_t done_received;
         size_t reply_received;
@@ -24,7 +24,7 @@ struct account_node {
     } delayed_replies;
 };
 
-void account_create(account_node *account, local_id id, context *ctx, const receive_handler *handlers);
+void account_create(account_node *account, local_id id, context *ctx, const account_recv_handler *handlers);
 void account_destroy(account_node *account);
 
 void account_handle_started(account_node *account, Message *message, local_id from);
