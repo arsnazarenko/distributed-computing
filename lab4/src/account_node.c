@@ -6,6 +6,18 @@
 #include "lamport_time.h"
 
 
+static void account_loop_start(account_node *account);
+static void account_loop_break(account_node *account);
+
+static bool account_is_work_done(account_node *account);
+static bool account_is_cs_candidate(account_node *account);
+static void account_put_in_queue(account_node *account, key k);
+
+static void account_reply_cs(account_node *account, local_id dst);
+static void account_send_start_to_all(account_node *account);
+static void account_send_done_to_all(account_node *account);
+
+
 void account_create(account_node *account, local_id id, context *ctx, const receive_handler *handlers) {
     account->handlers = handlers;
     account->event_state.done_received = 0;
@@ -26,18 +38,18 @@ static void account_loop_break(account_node *account) {
 }
 
 
-static bool is_work_done(account_node *account) {
+static bool account_is_work_done(account_node *account) {
     return ((account->event_state.done_received == account->node.neighbours.sz - 2)
             &&
             account->event_state.work_done_flag);
 }
 
-void account_loop_start(account_node *account) {
+static void account_loop_start(account_node *account) {
     account->event_state.break_flag = false;
     Message msg;
     local_id from_id = 0;
     if (account->node.neighbours.sz - 2 < 1) { return;}
-    while (!is_work_done(account) && !account->event_state.break_flag) {
+    while (!account_is_work_done(account) && !account->event_state.break_flag) {
         from_id %= account->node.neighbours.sz;
         if (from_id != account->node.id) {
             if (receive(&(account->node), from_id, &msg) != -1) {
@@ -72,7 +84,7 @@ void account_handle_done(account_node *account, Message *message, local_id from)
     }
 }
 
-static bool is_cs_candidate(account_node *account) {
+static bool account_is_cs_candidate(account_node *account) {
     const key *front = vector_front(account->req_queue);
     bool in_queue_head = front->id == account->node.id;
     bool all_replies_received = (account->event_state.reply_received == account->node.neighbours.sz - 2);
@@ -88,7 +100,7 @@ void account_handle_reply(account_node *account, Message *message, local_id from
     (void) message;
     (void) from;
     ++(account->event_state.reply_received);
-    if (is_cs_candidate(account)) { account_loop_break(account); }
+    if (account_is_cs_candidate(account)) { account_loop_break(account); }
 }
 
 void account_handle_release(account_node *account, Message *message, local_id from) {
@@ -96,7 +108,7 @@ void account_handle_release(account_node *account, Message *message, local_id fr
     (void) from;
     vector_erase(account->req_queue, 0);
     if (vector_len(account->req_queue) > 0) {
-        if (is_cs_candidate(account)) { account_loop_break(account); } // and enter in CS
+        if (account_is_cs_candidate(account)) { account_loop_break(account); } // and enter in CS
     }
 }
 
@@ -105,7 +117,7 @@ void account_handle_request(account_node *account, Message *message, local_id fr
      * todo:
      * push in req_queue
      * send_reply()
-     * if (is_cs_candidate) { account_loop_break(account); return; }
+     * if (account_is_cs_candidate) { account_loop_break(account); return; }
      */
     key k = {.id = from, .time = message->s_header.s_local_time};
     account_put_in_queue(account, k);
@@ -167,7 +179,7 @@ void account_release_cs(account_node *account) {
     send_multicast(&(account->node), &msg);
 }
 
-void account_reply_cs(account_node *account, local_id dst) {
+static void account_reply_cs(account_node *account, local_id dst) {
     timestamp_t timestamp = inc_lamport_time();
     Message msg;
     msg.s_header = (MessageHeader) {
@@ -178,12 +190,12 @@ void account_reply_cs(account_node *account, local_id dst) {
     while (send(&(account->node), dst, &msg) != 0);
 }
 
-void account_first_phase(account_node *account) {
+void account_start_phase(account_node *account) {
     account_send_start_to_all(account);
     account_loop_start(account); // block on receiving messages until received all start messages
 }
 
-void account_third_phase(account_node *account) {
+void account_done_phase(account_node *account) {
     account_send_done_to_all(account);
     account->event_state.work_done_flag = true;
     account_loop_start(account);// block on receiving messages until received all done messages
