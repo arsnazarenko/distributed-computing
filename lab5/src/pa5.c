@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
         } else if (pid == 0) {
             local_id id = child_id;
             account_node account;
-            receive_handler account_handlers[CS_RELEASE + 1] = {
+            account_recv_handler account_handlers[CS_RELEASE + 1] = {
                     [STARTED] = account_handle_started,
                     [DONE] = account_handle_done,
                     [CS_REQUEST] = account_handle_request,
@@ -56,11 +56,15 @@ int main(int argc, char *argv[]) {
         }
     }
     client_node client;
-    client_create(&client, PARENT_ID, &context);
+    client_recv_handler client_handlers[CS_RELEASE + 1] = {
+            [STARTED] = client_handle_started,
+            [DONE] = client_handle_done,
+    };
+    client_create(&client, PARENT_ID, &context, client_handlers);
     context_destroy(&context);  // close unused pipes
 
-    client_first_phase(&client);
-    client_third_phase(&client);
+    client_start_phase(&client);
+    client_done_phase(&client);
 
     client_destroy(&client);
 
