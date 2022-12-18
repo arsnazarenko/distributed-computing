@@ -30,7 +30,6 @@ int main(int argc, char *argv[]) {
                     [DONE] = account_handle_done,
                     [CS_REQUEST] = account_handle_request,
                     [CS_REPLY] = account_handle_reply,
-                    [CS_RELEASE] = account_handle_release,
             };
             account_create(&account, id, &context, account_handlers);
             context_destroy(&context);
@@ -39,7 +38,7 @@ int main(int argc, char *argv[]) {
             char buf[100];
             int iter_number = id * 5;
             bool mutex = program_arg.mutex_flag;
-            account_first_phase(&account);
+            account_start_phase(&account);
             for (int i = 1; i <= iter_number; ++i) {
                 sprintf(buf, log_loop_operation_fmt, id, i, iter_number);
 
@@ -49,7 +48,7 @@ int main(int argc, char *argv[]) {
                                                                     //
                 if (mutex) { account_release_cs(&account); } //  MUTEX ACQUIRE
             }
-            account_third_phase(&account);
+            account_done_phase(&account);
 
             account_destroy(&account);
             logger_destroy();
