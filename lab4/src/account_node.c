@@ -3,7 +3,6 @@
 #include "account_node.h"
 #include "logger.h"
 #include "pa2345.h"
-#include "lamport_time.h"
 
 
 static void account_loop_start(account_node *account);
@@ -11,7 +10,7 @@ static void account_loop_break(account_node *account);
 
 static bool account_is_work_done(account_node *account);
 static bool account_is_cs_candidate(account_node *account);
-static void account_put_in_queue(account_node *account, key k);
+static void account_put_in_queue(account_node *account, lamport_key k);
 
 static void account_reply_cs(account_node *account, local_id dst);
 static void account_send_start_to_all(account_node *account);
@@ -85,15 +84,15 @@ void account_handle_done(account_node *account, Message *message, local_id from)
 }
 
 static bool account_is_cs_candidate(account_node *account) {
-    const key *front = vector_front(account->req_queue);
+    const lamport_key *front = vector_front(account->req_queue);
     bool in_queue_head = front->id == account->node.id;
     bool all_replies_received = (account->event_state.reply_received == account->node.neighbours.sz - 2);
     return (in_queue_head && all_replies_received);
 }
 
-static void account_put_in_queue(account_node *account, key k) {
+static void account_put_in_queue(account_node *account, lamport_key k) {
     vector_push_back(account->req_queue, k);
-    vector_sort(account->req_queue, lamport_time_compare);
+    vector_sort(account->req_queue, lamport_key_compare);
 }
 
 void account_handle_reply(account_node *account, Message *message, local_id from) {
@@ -119,7 +118,7 @@ void account_handle_request(account_node *account, Message *message, local_id fr
      * send_reply()
      * if (account_is_cs_candidate) { account_loop_break(account); return; }
      */
-    key k = {.id = from, .time = message->s_header.s_local_time};
+    lamport_key k = {.id = from, .time = message->s_header.s_local_time};
     account_put_in_queue(account, k);
     account_reply_cs(account, from);
 }
@@ -153,7 +152,7 @@ static void account_send_done_to_all(account_node *account) {
 
 void account_request_cs(account_node *account) {
     timestamp_t timestamp = inc_lamport_time();
-    key k = {.id = account->node.id, .time = timestamp};
+    lamport_key k = {.id = account->node.id, .time = timestamp};
     account_put_in_queue(account, k); // put in local queue
     Message msg;
     msg.s_header = (MessageHeader) {

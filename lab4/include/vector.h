@@ -3,19 +3,10 @@
 
 #include <stddef.h>
 #include <stdio.h>
-#include "ipc.h"
+#include "lamport_time.h"
 
-/**
- * key of request's queue: (time, id)
- */
-typedef struct key {
-    timestamp_t time;
-    local_id id;
-} key;
 
-int lamport_time_compare(const key* lhs, const key* rhs);
-
-typedef key data_t;
+typedef lamport_key data_t;
 typedef int error_t;
 
 struct vector;
