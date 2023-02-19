@@ -3,8 +3,8 @@
 #include "logger.h"
 #include "pa2345.h"
 
-FILE* pipes_log_file = NULL;
-FILE* events_log_file = NULL;
+static FILE* pipes_log_file = NULL;
+static FILE* events_log_file = NULL;
 
 static const char * const log_pipe_open_fmt = "Pipe(%3d,%3d) was opened\n";
 

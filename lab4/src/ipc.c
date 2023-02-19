@@ -4,7 +4,6 @@
 #include <errno.h>
 #include "ipc.h"
 #include "node.h"
-#include "lamport_time.h"
 
 static const size_t MAX_RETRY_NUMBER = 3;
 

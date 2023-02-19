@@ -7,9 +7,6 @@
 #include "ipc.h"
 #include "pipe_utils.h"
 
-extern FILE* pipes_log_file;
-extern FILE* events_log_file;
-
 int logger_create(void);
 void logger_destroy(void);
 
