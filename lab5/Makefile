@@ -1,13 +1,13 @@
-BUILD_DIR = build
+BUILD_DIR ?= build
 OBJ_DIR = $(BUILD_DIR)/obj
 DEP_DIR = $(BUILD_DIR)/dep
 SRC_DIR = src
 INCLUDE_DIR = include
-DYN_LIB_DIR = $(shell pwd)/lib64
+DYN_LIB_DIR ?= $(shell pwd)/lib64
 TARGET = $(BUILD_DIR)/pa5
 
 CC = clang
-CFLAGS += -std=c99 -Wall -Wextra -pedantic -g -I ./$(INCLUDE_DIR)
+CFLAGS += -std=c99 -Wall -Wextra -pedantic -I ./$(INCLUDE_DIR)
 
 SOURCES = $(shell find $(SRC_DIR) -type f -name '*.c')
 OBJS = $(SOURCES:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
@@ -50,5 +50,5 @@ clean:
 	rm -rf $(BUILD_DIR) *.log
 
 .PHONY:
-	clean build_dir
+	clean build_dir debug sanitized release
 
