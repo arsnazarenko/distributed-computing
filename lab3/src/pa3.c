@@ -39,12 +39,17 @@ int main(int argc, char *argv[]) {
                     [TRANSFER] = account_handle_transfer,
                     [STOP] = account_handle_stop
             };
+
+
             account_run(&account, account_handlers);
             account_destroy(&account);
             logger_destroy();
             exit(0);
         }
     }
+
+
+
     client_node client;
     client_create(&client, PARENT_ID, &context);
     context_destroy(&context);  // close unused pipes
