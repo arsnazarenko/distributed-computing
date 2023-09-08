@@ -31,7 +31,7 @@ Improvment of Lab3 with Lamport distributed mutual exclusion algoritmh.
 
 [Sources](https://github.com/arsnazarenko/distributed-computing/tree/master/lab4)
 
-[Lamport Mutual Exclusion algoritmh](https://www.tutorialspoint.com/lamportis-algorithm-for-mutual-exclusion-in-distributed-system)
+* Lamport Mutual Exclusion algoritmh: https://www.tutorialspoint.com/lamportis-algorithm-for-mutual-exclusion-in-distributed-system
 
 ### 5. Ricart–Agrawala mutual exclusion algoritmh
 
@@ -40,7 +40,7 @@ Improvment of Lab3 with Ricart–Agrawala distributed mutual exclusion algoritmh
 
 [Sources](https://github.com/arsnazarenko/distributed-computing/tree/master/lab5)
 
-[Ricart–Agrawala Mutual Exclusion algoritmh](https://people.cs.rutgers.edu/~pxk/417/notes/10-mutex.html)
+* Ricart–Agrawala Mutual Exclusion algoritmh: https://people.cs.rutgers.edu/~pxk/417/notes/10-mutex.html
 
 
 
